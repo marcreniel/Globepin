@@ -21,6 +21,11 @@ export default function HomeScreen() {
         <ThemedText type="title">Welcome!</ThemedText>
         <HelloWave />
       </ThemedView>
+      <ThemedView className="p-4 bg-blue-500 rounded-lg mt-4">
+        <ThemedText className="text-white font-bold text-center">
+          Nativewind v5 is working!
+        </ThemedText>
+      </ThemedView>
       <ThemedView style={styles.stepContainer}>
         <ThemedText type="subtitle">Step 1: Try it</ThemedText>
         <ThemedText>
