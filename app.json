@@ -9,7 +9,14 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.marcreniel.Globepin",
+      "infoPlist": {
+        "CADisableMinimumFrameDurationOnPhone": true,
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Allow $(PRODUCT_NAME) to use your location",
+        "NSLocationAlwaysUsageDescription": "Allow $(PRODUCT_NAME) to use your location",
+        "NSLocationWhenInUseUsageDescription": "Allow $(PRODUCT_NAME) to use your location"
+      }
     },
     "android": {
       "adaptiveIcon": {
