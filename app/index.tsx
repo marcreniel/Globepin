@@ -1,5 +1,4 @@
 import * as Location from 'expo-location';
-import { styled } from 'nativewind';
 import React, { useCallback, useRef, useState } from 'react';
 import {
     Animated,
@@ -9,6 +8,7 @@ import {
     View
 } from 'react-native';
 import MapView, { Marker, Region } from 'react-native-maps';
+import { withUniwind } from 'uniwind';
 
 import DraggedPinOverlay from '@/components/DraggedPinOverlay';
 import FindMyPin from '@/components/FindMyPin';
@@ -20,7 +20,7 @@ import { type TrueSheet } from '@lodev09/react-native-true-sheet';
 import { useReanimatedTrueSheet } from '@lodev09/react-native-true-sheet/reanimated';
 import { Extrapolation, interpolate, useAnimatedStyle } from 'react-native-reanimated';
 
-const StyledMapView = styled(MapView, { className: 'style' });
+const StyledMapView = withUniwind(MapView);
 
 const isAndroid = Platform.OS === 'android';
 type MapStyle = 'standard' | 'hybridFlyover' | 'satellite';
@@ -347,11 +347,11 @@ export default function HomeScreen() {
                 className="w-full h-full"
                 mapType={mapStyle}
                 region={region}
-                onRegionChange={(r) => {
+                onRegionChange={(r: Region) => {
                     regionRef.current = r;
                     setLiveRegion(r);
                 }}
-                onRegionChangeComplete={(r) => {
+                onRegionChangeComplete={(r: Region) => {
                     regionRef.current = r;
                     setLiveRegion(r);
                     setIsAtUserLocation(false);
