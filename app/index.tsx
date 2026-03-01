@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { styled } from 'nativewind';
 import React, { useCallback, useRef, useState } from 'react';
@@ -6,23 +5,20 @@ import {
     Animated,
     PanResponder,
     Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
     useWindowDimensions,
     View
 } from 'react-native';
 import MapView, { Marker, Region } from 'react-native-maps';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import DraggedPinOverlay from '@/components/DraggedPinOverlay';
 import FindMyPin from '@/components/FindMyPin';
-import { HelloWave } from '@/components/hello-wave';
+import MainBottomSheet from '@/components/MainBottomSheet';
+import MapFloatingControls from '@/components/MapFloatingControls';
+import ProfileButton from '@/components/ProfileButton';
 import usePinClusters from '@/hooks/usePinClusters';
 import { type TrueSheet } from '@lodev09/react-native-true-sheet';
-import { ReanimatedTrueSheet, useReanimatedTrueSheet } from '@lodev09/react-native-true-sheet/reanimated';
-import { GlassView } from 'expo-glass-effect';
-import Reanimated, { Extrapolation, interpolate, useAnimatedStyle } from 'react-native-reanimated';
+import { useReanimatedTrueSheet } from '@lodev09/react-native-true-sheet/reanimated';
+import { Extrapolation, interpolate, useAnimatedStyle } from 'react-native-reanimated';
 
 const StyledMapView = styled(MapView, { className: 'style' });
 
@@ -49,7 +45,6 @@ interface Pin {
 }
 
 export default function HomeScreen() {
-    const insets = useSafeAreaInsets();
     const [searchQuery, setSearchQuery] = useState('');
     const [pins, setPins] = useState<Pin[]>([]);
     const [isDragging, setIsDragging] = useState(false);
@@ -70,8 +65,7 @@ export default function HomeScreen() {
     const { animatedPosition } = useReanimatedTrueSheet();
 
     const floatingStyle = useAnimatedStyle(() => {
-        // Only read value on UI thread to prevent Reanimated warning during JS render
-        const y = _WORKLET ? animatedPosition?.value : screenHeight;
+        const y = animatedPosition ? animatedPosition.value : screenHeight;
         const validY = (y !== undefined && y > 0) ? y : screenHeight;
 
         // the 0.33 detent is at y = screenHeight * 0.67. 
@@ -92,8 +86,7 @@ export default function HomeScreen() {
     });
 
     const welcomeStyle = useAnimatedStyle(() => {
-        // Only read value on UI thread to prevent Reanimated warning
-        const y = _WORKLET ? animatedPosition?.value : screenHeight;
+        const y = animatedPosition ? animatedPosition.value : screenHeight;
         const validY = (y !== undefined && y > 0) ? y : screenHeight;
 
         // Hide completely before hitting the `auto` detent (which is ~0.85H). 
@@ -401,135 +394,35 @@ export default function HomeScreen() {
                 ))}
             </StyledMapView>
 
-            {/* Top Left Profile Button */}
-            <View className="absolute left-4 shadow-sm shadow-black/50" style={{ top: insets.top + 8 }}>
-                <TouchableOpacity
-                    activeOpacity={0.7}
-                    className="w-10 h-10 rounded-full overflow-hidden border border-gray-700/50 items-center justify-center"
-                >
-                    <GlassView style={StyleSheet.absoluteFill} colorScheme="dark" />
-                    <Ionicons name="person-circle-outline" size={24} color="#9CA3AF" />
-                </TouchableOpacity>
-            </View>
+            <ProfileButton />
 
-            {/* Floating Controls — Pin (Left) & Map Tools (Right) */}
-            <Reanimated.View
-                className="absolute flex-row justify-between items-end"
-                style={[{ top: 0, zIndex: 10 }, floatingStyle as any]}
-                pointerEvents="box-none"
-            >
-                {/* Drag Pin */}
-                <View className="shadow-sm shadow-black/50">
-                    <View
-                        className="w-12 h-12 rounded-full border border-gray-700/50 overflow-hidden items-center justify-center"
-                        {...panResponder.panHandlers}
-                    >
-                        <GlassView style={StyleSheet.absoluteFill} colorScheme="dark" />
-                        <Animated.View style={{ opacity: pinColorAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }) }}>
-                            <Ionicons name="location-outline" size={24} color="#9CA3AF" />
-                        </Animated.View>
-                        <Animated.View style={{ position: 'absolute', opacity: pinColorAnim }}>
-                            <Ionicons name="location" size={24} color="#EF4444" />
-                        </Animated.View>
-                    </View>
-                </View>
+            <MapFloatingControls
+                floatingStyle={floatingStyle}
+                panHandlers={panResponder.panHandlers}
+                pinColorAnim={pinColorAnim}
+                mapStyle={mapStyle}
+                setMapStyle={setMapStyle}
+                isAtUserLocation={isAtUserLocation}
+                goToUserLocation={goToUserLocation}
+            />
 
-                {/* Map Controls Pill */}
-                <View className="w-12 border border-gray-700/50 rounded-[24px] overflow-hidden shadow-sm shadow-black/50">
-                    <GlassView style={StyleSheet.absoluteFill} colorScheme="dark" />
-                    <TouchableOpacity
-                        activeOpacity={0.7}
-                        onPress={() => setMapStyle(prev => prev === 'standard' ? 'hybridFlyover' : 'standard')}
-                        className="w-12 h-12 items-center justify-center"
-                    >
-                        <Ionicons
-                            name={mapStyle === 'standard' ? 'map-outline' : 'globe-outline'}
-                            size={22}
-                            color="#9CA3AF"
-                        />
-                    </TouchableOpacity>
+            <MainBottomSheet
+                sheetRef={sheetRef}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                handleSearchFocus={handleSearchFocus}
+                handleDetentChange={handleDetentChange}
+                welcomeStyle={welcomeStyle}
+            />
 
-                    <View style={{ height: 0.5, backgroundColor: 'rgba(75,85,99,0.5)' }} />
-
-                    <TouchableOpacity
-                        activeOpacity={0.7}
-                        onPress={goToUserLocation}
-                        className="w-12 h-12 items-center justify-center"
-                    >
-                        <Ionicons name={isAtUserLocation ? 'navigate' : 'navigate-outline'} size={22} color="#9CA3AF" />
-                    </TouchableOpacity>
-                </View>
-            </Reanimated.View>
-
-            <ReanimatedTrueSheet
-                ref={sheetRef}
-                name="search-sheet"
-                detents={['auto', 0.33, 0.75]}
-                initialDetentIndex={0}
-                dismissible={false}
-                detached={true}
-                cornerRadius={24}
-                dimmed={false}
-                grabber={true}
-                grabberOptions={{ color: '#4B5563' }}
-                onDetentChange={handleDetentChange}
-            >
-                <View className="px-4 py-4">
-                    <View className="flex-row items-center bg-gray-700/50 border border-gray-600/50 rounded-[20px] px-4 py-3">
-                        <Ionicons name="search" size={18} color="#9CA3AF" />
-                        <TextInput
-                            style={{ flex: 1, color: '#fff', fontSize: 16, marginLeft: 8 }}
-                            placeholder="Search..."
-                            placeholderTextColor="#9CA3AF"
-                            value={searchQuery}
-                            onChangeText={setSearchQuery}
-                            returnKeyType="search"
-                            onFocus={handleSearchFocus}
-                        />
-                        <TouchableOpacity activeOpacity={0.7}>
-                            <Ionicons name="mic" size={20} color="#9CA3AF" />
-                        </TouchableOpacity>
-                    </View>
-
-                    <Animated.View className="absolute top-[80px] left-6 right-6" style={welcomeStyle} pointerEvents="none">
-                        <View className="flex-row items-center mb-1">
-                            <Text className="text-white text-xl font-bold mr-2">Welcome Back, Marc</Text>
-                            <HelloWave />
-                        </View>
-                        <Text className="text-gray-400 text-sm font-medium">Pin past journeys or explore new ones!</Text>
-                    </Animated.View>
-                </View>
-            </ReanimatedTrueSheet>
-
-            {
-                isDragging && (
-                    <Animated.View
-                        pointerEvents="none"
-                        style={[
-                            {
-                                position: 'absolute',
-                                left: Animated.subtract(dragPosition.x, 28),
-                                top: Animated.subtract(dragPosition.y, 60),
-                                zIndex: 999,
-                                opacity: dragOpacity,
-                            },
-                            {
-                                transform: [
-                                    { scale: dragScale },
-                                    {
-                                        rotate: wiggleRotation.interpolate({
-                                            inputRange: [-1, 0, 1],
-                                            outputRange: ['-3deg', '0deg', '3deg'],
-                                        })
-                                    },
-                                ],
-                            },
-                        ]}
-                    >
-                        <FindMyPin size={56} />
-                    </Animated.View>
-                )
-            }
-        </View >
+            {isDragging && (
+                <DraggedPinOverlay
+                    dragPosition={dragPosition}
+                    dragOpacity={dragOpacity}
+                    dragScale={dragScale}
+                    wiggleRotation={wiggleRotation}
+                />
+            )}
+        </View>
     );
 }
