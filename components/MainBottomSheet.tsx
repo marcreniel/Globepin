@@ -35,6 +35,7 @@ export default function MainBottomSheet({
             dimmed={false}
             grabber={true}
             grabberOptions={{ color: '#4B5563' }}
+            className="border border-gray-700/75"
             onDetentChange={handleDetentChange}
         >
             <View className="px-4 py-4">

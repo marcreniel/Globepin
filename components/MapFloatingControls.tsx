@@ -30,9 +30,9 @@ export default function MapFloatingControls({
             pointerEvents="box-none"
         >
             {/* Drag Pin */}
-            <View className="shadow-sm shadow-black/50">
+            <View className="rounded-full">
                 <View
-                    className="w-12 h-12 rounded-full border border-gray-700/50 overflow-hidden items-center justify-center"
+                    className="w-12 h-12 rounded-full border border-gray-700/75 overflow-hidden items-center justify-center"
                     {...panHandlers}
                 >
                     <GlassView style={StyleSheet.absoluteFill} colorScheme="dark" />
@@ -46,7 +46,7 @@ export default function MapFloatingControls({
             </View>
 
             {/* Map Controls Pill */}
-            <View className="w-12 border border-gray-700/50 rounded-[24px] overflow-hidden shadow-sm shadow-black/50">
+            <View className="w-12 border border-gray-700/75 rounded-[24px] overflow-hidden">
                 <GlassView style={StyleSheet.absoluteFill} colorScheme="dark" />
                 <TouchableOpacity
                     activeOpacity={0.7}

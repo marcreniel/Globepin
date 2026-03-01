@@ -79,7 +79,7 @@ export default function HomeScreen() {
         );
 
         return {
-            transform: [{ translateY: validY - 100 }],
+            transform: [{ translateY: validY - 116 }],
             left: horizontalInset,
             right: horizontalInset,
         };

@@ -14,11 +14,25 @@ import "../global.css";
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
+import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
+import '@/global.css';
+import { SafeAreaListener } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Uniwind } from 'uniwind';
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    
+    <SafeAreaListener
+      onChange={({ insets }) => {
+        Uniwind.updateInsets(insets);
+      }}
+    >
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <GluestackUIProvider mode="dark">
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <ReanimatedTrueSheetProvider>
         <Stack>
           <Stack.Screen name="index" options={{ headerShown: false }} />
@@ -27,5 +41,9 @@ export default function RootLayout() {
       </ReanimatedTrueSheetProvider>
       <StatusBar style="light" />
     </ThemeProvider>
+        </GluestackUIProvider>
+      </GestureHandlerRootView>
+    </SafeAreaListener>
+  
   );
 }
