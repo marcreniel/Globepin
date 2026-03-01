@@ -14,6 +14,7 @@ import DraggedPinOverlay from '@/components/DraggedPinOverlay';
 import FindMyPin from '@/components/FindMyPin';
 import MainBottomSheet from '@/components/MainBottomSheet';
 import MapFloatingControls from '@/components/MapFloatingControls';
+import PinDetailSheet, { PinDetailSheetHandle, PinDetails } from '@/components/PinDetailSheet';
 import ProfileButton from '@/components/ProfileButton';
 import usePinClusters from '@/hooks/usePinClusters';
 import { type TrueSheet } from '@lodev09/react-native-true-sheet';
@@ -42,10 +43,15 @@ interface Pin {
     id: string;
     latitude: number;
     longitude: number;
+    name?: string;
+    notes?: string;
+    dateVisited?: string;
+    photos?: string[];
 }
 
 export default function HomeScreen() {
     const [searchQuery, setSearchQuery] = useState('');
+    const [currentDetentIndex, setCurrentDetentIndex] = useState(1);
     const [pins, setPins] = useState<Pin[]>([]);
     const [isDragging, setIsDragging] = useState(false);
     const [mapStyle, setMapStyle] = useState<MapStyle>(isAndroid ? 'satellite' : 'hybridFlyover');
@@ -62,6 +68,7 @@ export default function HomeScreen() {
     const { height: screenHeight } = useWindowDimensions();
 
     const sheetRef = useRef<TrueSheet>(null);
+    const pinDetailSheetRef = useRef<PinDetailSheetHandle>(null);
     const { animatedPosition } = useReanimatedTrueSheet();
 
     const floatingStyle = useAnimatedStyle(() => {
@@ -79,7 +86,7 @@ export default function HomeScreen() {
         );
 
         return {
-            transform: [{ translateY: validY - 116 }],
+            transform: [{ translateY: Math.min(validY - 116, screenHeight * 0.90 - 116) }],
             left: horizontalInset,
             right: horizontalInset,
         };
@@ -115,11 +122,24 @@ export default function HomeScreen() {
     const handleDetentChange = useCallback((e: any) => {
         const { index, position } = e.nativeEvent;
         console.log('Sheet snapped to detent:', index, position);
+        setCurrentDetentIndex(index);
     }, []);
 
     const handleSearchFocus = useCallback(() => {
         // Programmatically expand the sheet to its maximum detent (index 2 which is 0.8)
         sheetRef.current?.resize(2);
+    }, []);
+
+    const handlePinSave = useCallback((details: PinDetails) => {
+        setPins((prev) => [...prev, {
+            id: Date.now().toString(),
+            latitude: details.latitude,
+            longitude: details.longitude,
+            name: details.name,
+            notes: details.notes,
+            dateVisited: details.dateVisited,
+            photos: details.photos,
+        }]);
     }, []);
 
     const fingerPos = useRef({ x: 0, y: 0 });
@@ -326,11 +346,7 @@ export default function HomeScreen() {
                         y: screenY,
                     });
                     if (coordinate) {
-                        setPins((prev) => [...prev, {
-                            id: Date.now().toString(),
-                            latitude: coordinate.latitude,
-                            longitude: coordinate.longitude,
-                        }]);
+                        pinDetailSheetRef.current?.present(coordinate);
                     }
                 } catch (error) {
                     console.log('Could not place pin:', error);
@@ -413,6 +429,7 @@ export default function HomeScreen() {
                 handleSearchFocus={handleSearchFocus}
                 handleDetentChange={handleDetentChange}
                 welcomeStyle={welcomeStyle}
+                currentDetentIndex={currentDetentIndex}
             />
 
             {isDragging && (
@@ -423,6 +440,11 @@ export default function HomeScreen() {
                     wiggleRotation={wiggleRotation}
                 />
             )}
+
+            <PinDetailSheet
+                ref={pinDetailSheetRef}
+                onSave={handlePinSave}
+            />
         </View>
     );
 }
