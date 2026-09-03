@@ -155,7 +155,7 @@ export default function PinDetailContent({
                         value={notes}
                         onChangeText={setNotes}
                         placeholder="Any memories about this place..."
-                        placeholderTextColor="#4B5563"
+                        placeholderTextColor="#9CA3AF"
                         style={{ color: '#fff', fontSize: 15, minHeight: 72, textAlignVertical: 'top' }}
                         multiline
                         returnKeyType="done"
@@ -170,7 +170,7 @@ export default function PinDetailContent({
                     <Text className="text-gray-400 text-xs font-medium uppercase tracking-wide">
                         Photos
                     </Text>
-                    <Text className="text-gray-600 text-xs">{photos.length}/10</Text>
+                    <Text className="text-gray-400 text-xs">{photos.length}/10</Text>
                 </View>
                 <ScrollView
                     horizontal
@@ -206,7 +206,7 @@ export default function PinDetailContent({
                         <TouchableOpacity
                             onPress={onPickPhotos}
                             activeOpacity={0.7}
-                            className="bg-gray-600/60 border border-gray-700/75 rounded-xl items-center justify-center"
+                            className="bg-white/8 border border-white/10 rounded-2xl items-center justify-center"
                             style={{ width: 80, height: 80, gap: 4 }}
                         >
                             <Ionicons name="camera-outline" size={22} color="#9CA3AF" />
