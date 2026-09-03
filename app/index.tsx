@@ -79,7 +79,7 @@ export default function HomeScreen() {
     const [pinName, setPinName] = useState('');
     const [pinNotes, setPinNotes] = useState('');
     const [pinDateVisited, setPinDateVisited] = useState('');
-    const [pinRating, setPinRating] = useState(0);
+    const [pinRating, setPinRating] = useState<number | null>(null);
     const [pinVisibility, setPinVisibility] = useState<PinVisibility>('public');
     const [pinPhotos, setPinPhotos] = useState<string[]>([]);
     const dragPosition = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current; // tracks finger screen position
@@ -291,7 +291,7 @@ export default function HomeScreen() {
         setPinName('');
         setPinNotes('');
         setPinPhotos([]);
-        setPinRating(0);
+        setPinRating(null);
         setPinVisibility('public');
         setPinDateVisited(new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }));
         setIsPinDetailActive(true);
@@ -348,7 +348,7 @@ export default function HomeScreen() {
             name: pinName.trim() || 'Untitled Pin',
             notes: pinNotes.trim(),
             dateVisited: pinDateVisited,
-            rating: pinRating,
+            rating: pinRating ?? undefined,
             visibility: pinVisibility,
             photos: pinPhotos,
         }]);

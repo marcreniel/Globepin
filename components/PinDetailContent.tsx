@@ -15,8 +15,8 @@ interface PinDetailContentProps {
     setNotes: (value: string) => void;
     dateVisited: string;
     setDateVisited: (value: string) => void;
-    rating: number;
-    setRating: (value: number) => void;
+    rating: number | null;
+    setRating: (value: number | null) => void;
     visibility: PinVisibility;
     setVisibility: (value: PinVisibility) => void;
     photos: string[];
@@ -86,7 +86,12 @@ export default function PinDetailContent({
         setIsVisibilityMenuOpen(false);
     };
 
+    const handleToggleRating = () => {
+        setRating(rating === null ? 0 : null);
+    };
+
     const showNameDropdown = isNameFocused && name.trim().length >= 2;
+    const hasRating = rating !== null;
 
     return (
         <View
@@ -106,9 +111,10 @@ export default function PinDetailContent({
                 <View className="relative">
                     <TouchableOpacity
                         activeOpacity={0.7}
-                        className="flex-row items-center bg-gray-600/60 rounded-2xl pl-2.5 pr-2 py-1.5"
+                        className="flex-row items-center rounded-2xl overflow-hidden pl-2.5 pr-2 py-1.5"
                         onPress={() => setIsVisibilityMenuOpen((v) => !v)}
                     >
+                        <GlassView style={StyleSheet.absoluteFill} colorScheme="dark" />
                         <Ionicons
                             name={visibility === 'public' ? 'globe-outline' : 'lock-closed-outline'}
                             size={14}
@@ -226,11 +232,28 @@ export default function PinDetailContent({
                 </View>
 
                 <View className="flex-1">
-                    <Text className="text-gray-400 text-xs font-medium mb-1.5 uppercase tracking-wide">
-                        Rating
-                    </Text>
+                    <TouchableOpacity
+                        activeOpacity={0.7}
+                        className="flex-row items-center justify-between mb-1.5"
+                        onPress={handleToggleRating}
+                    >
+                        <Text className="text-gray-400 text-xs font-medium uppercase tracking-wide">
+                            Rating
+                        </Text>
+                        <Ionicons
+                            name={hasRating ? 'checkbox' : 'square-outline'}
+                            size={15}
+                            color={hasRating ? '#60A5FA' : '#6B7280'}
+                        />
+                    </TouchableOpacity>
                     <View className="bg-white/8 border border-white/10 rounded-2xl px-4 py-3.5 items-center justify-center">
-                        <StarRating value={rating} onChange={setRating} size={17} />
+                        {hasRating ? (
+                            <StarRating value={rating} onChange={setRating} size={17} />
+                        ) : (
+                            <View pointerEvents="none" style={{ opacity: 0.35 }}>
+                                <StarRating value={0} onChange={() => {}} size={17} />
+                            </View>
+                        )}
                     </View>
                 </View>
             </View>

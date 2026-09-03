@@ -12,19 +12,31 @@ interface StarRatingProps {
 const STAR_COUNT = 5;
 
 export default function StarRating({ value, onChange, size = 20, color = '#FBBF24' }: StarRatingProps) {
-    const containerWidth = useRef(0);
+    const containerRef = useRef<View>(null);
+    // pageX/width of the row on screen — measured (not locationX) because locationX is
+    // relative to whichever star icon the touch actually lands on, not the row itself.
+    const containerLayout = useRef({ x: 0, width: 0 });
+
+    const measure = () => {
+        containerRef.current?.measureInWindow((x, _y, width) => {
+            containerLayout.current = { x, width };
+        });
+    };
 
     const updateFromEvent = (e: GestureResponderEvent) => {
-        if (containerWidth.current <= 0) return;
-        const ratio = Math.max(0, Math.min(1, e.nativeEvent.locationX / containerWidth.current));
+        const { x, width } = containerLayout.current;
+        if (width <= 0) return;
+        const localX = e.nativeEvent.pageX - x;
+        const ratio = Math.max(0, Math.min(1, localX / width));
         const stepped = Math.round(ratio * STAR_COUNT * 2) / 2;
         onChange(Math.max(0, Math.min(STAR_COUNT, stepped)));
     };
 
     return (
         <View
+            ref={containerRef}
             className="flex-row"
-            onLayout={(e) => { containerWidth.current = e.nativeEvent.layout.width; }}
+            onLayout={measure}
             onStartShouldSetResponder={() => true}
             onMoveShouldSetResponder={() => true}
             onResponderGrant={updateFromEvent}

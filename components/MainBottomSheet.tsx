@@ -77,8 +77,8 @@ interface MainBottomSheetProps {
     setPinNotes: (value: string) => void;
     pinDateVisited: string;
     setPinDateVisited: (value: string) => void;
-    pinRating: number;
-    setPinRating: (value: number) => void;
+    pinRating: number | null;
+    setPinRating: (value: number | null) => void;
     pinVisibility: PinVisibility;
     setPinVisibility: (value: PinVisibility) => void;
     pinPhotos: string[];
@@ -193,9 +193,10 @@ export default function MainBottomSheet({
                         <GlassView style={StyleSheet.absoluteFill} colorScheme="dark" />
                         <TouchableOpacity
                             activeOpacity={0.7}
-                            className="flex-row items-center bg-gray-600/60 rounded-2xl pl-2.5 pr-2 py-2 mr-2"
+                            className="flex-row items-center rounded-2xl overflow-hidden pl-2.5 pr-2 py-2 mr-2"
                             onPress={onPressLocationPill}
                         >
+                            <GlassView style={StyleSheet.absoluteFill} colorScheme="dark" />
                             <Ionicons name="location" size={14} color="#9CA3AF" />
                             <Text
                                 className="text-white text-xs font-semibold ml-1"
