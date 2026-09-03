@@ -117,7 +117,7 @@ export default function MainBottomSheet({
         <ReanimatedTrueSheet
             ref={sheetRef}
             name="search-sheet"
-            detents={['auto', 0.33, 0.75]}
+            detents={['auto', 0.33, 0.47]}
             initialDetentIndex={1}
             dismissible={false}
             detached={true}
