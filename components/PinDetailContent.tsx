@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { GlassView } from 'expo-glass-effect';
 import React, { useRef, useState } from 'react';
 import { ActivityIndicator, Image, Keyboard, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 export type PinVisibility = 'public' | 'private';
 
@@ -127,34 +128,36 @@ export default function PinDetailContent({
                     </TouchableOpacity>
 
                     {isVisibilityMenuOpen && (
-                        <View
+                        <Animated.View
+                            entering={FadeIn.duration(200)}
+                            exiting={FadeOut.duration(150)}
                             className="absolute top-full mt-1.5 rounded-2xl border border-gray-700/75 overflow-hidden"
                             style={{ minWidth: 150, left: '50%', transform: [{ translateX: -75 }] }}
                         >
                             <GlassView style={StyleSheet.absoluteFill} colorScheme="dark" />
                             <TouchableOpacity
                                 activeOpacity={0.7}
-                                className="flex-row items-center px-3 py-2.5 border-b border-gray-700/50"
+                                className="flex-row items-center py-3 px-2 border-b border-gray-700/50"
                                 onPress={() => handleSelectVisibility('public')}
                             >
-                                <Ionicons name="globe-outline" size={16} color="#9CA3AF" />
-                                <Text className="text-white text-sm ml-2 flex-1">Public</Text>
+                                <Ionicons name="globe-outline" size={18} color="#9CA3AF" />
+                                <Text className="text-white text-sm font-medium ml-3 flex-1">Public</Text>
                                 {visibility === 'public' && (
                                     <Ionicons name="checkmark" size={14} color="#60A5FA" />
                                 )}
                             </TouchableOpacity>
                             <TouchableOpacity
                                 activeOpacity={0.7}
-                                className="flex-row items-center px-3 py-2.5"
+                                className="flex-row items-center py-3 px-2"
                                 onPress={() => handleSelectVisibility('private')}
                             >
-                                <Ionicons name="lock-closed-outline" size={16} color="#9CA3AF" />
-                                <Text className="text-white text-sm ml-2 flex-1">Private</Text>
+                                <Ionicons name="lock-closed-outline" size={18} color="#9CA3AF" />
+                                <Text className="text-white text-sm font-medium ml-3 flex-1">Private</Text>
                                 {visibility === 'private' && (
                                     <Ionicons name="checkmark" size={14} color="#60A5FA" />
                                 )}
                             </TouchableOpacity>
-                        </View>
+                        </Animated.View>
                     )}
                 </View>
 
