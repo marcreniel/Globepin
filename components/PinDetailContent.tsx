@@ -10,10 +10,12 @@ import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 export type PinVisibility = 'public' | 'private';
 
 // These dropdowns float over other form fields rather than the map or empty
-// sheet space, so plain glass has too little contrast behind it to stay
-// legible — the fields underneath bleed straight through. A near-opaque tint
-// keeps just a hint of glass character while actually masking what's behind it.
-const DROPDOWN_GLASS_TINT = 'rgba(15, 17, 23, 0.92)';
+// sheet space. Liquid Glass's blur still lets the shapes/text behind it read
+// through no matter how opaque the tint goes — tint colors the blur, it
+// doesn't cover it — so legibility here needs a plain solid background
+// instead of GlassView. Matches the FindMyPin marker's dark fill
+// (components/FindMyPin.tsx) at full opacity.
+const DROPDOWN_SOLID_BG = 'rgb(30, 30, 30)';
 
 interface PinDetailContentProps {
     name: string;
@@ -150,9 +152,8 @@ export default function PinDetailContent({
                             entering={FadeIn.duration(200)}
                             exiting={FadeOut.duration(150)}
                             className="absolute top-full mt-1.5 rounded-2xl border border-gray-700/75 overflow-hidden"
-                            style={{ minWidth: 150, left: '50%', transform: [{ translateX: -75 }] }}
+                            style={{ minWidth: 150, left: 0, backgroundColor: DROPDOWN_SOLID_BG }}
                         >
-                            <GlassView style={StyleSheet.absoluteFill} colorScheme="dark" tintColor={DROPDOWN_GLASS_TINT} />
                             <TouchableOpacity
                                 activeOpacity={0.7}
                                 className="flex-row items-center py-3 px-2 border-b border-gray-700/50"
@@ -212,9 +213,8 @@ export default function PinDetailContent({
                         entering={FadeIn.duration(200)}
                         exiting={FadeOut.duration(150)}
                         className="absolute left-0 right-0 top-full mt-1.5 rounded-2xl border border-gray-700/75 overflow-hidden"
-                        style={{ maxHeight: 240 }}
+                        style={{ maxHeight: 240, backgroundColor: DROPDOWN_SOLID_BG }}
                     >
-                        <GlassView style={StyleSheet.absoluteFill} colorScheme="dark" tintColor={DROPDOWN_GLASS_TINT} />
                         {isNameSearching && nameSuggestions.length === 0 && (
                             <View className="flex-row items-center px-3 py-3">
                                 <ActivityIndicator size="small" color="#9CA3AF" />
