@@ -71,7 +71,6 @@ interface MainBottomSheetProps {
     onSelectLocation: (suggestion: MapboxSuggestion) => void;
     onUseCurrentLocation: () => void;
     isPinDetailActive: boolean;
-    pinCoordinate: { latitude: number; longitude: number } | null;
     pinName: string;
     setPinName: (value: string) => void;
     pinNotes: string;
@@ -110,7 +109,6 @@ export default function MainBottomSheet({
     onSelectLocation,
     onUseCurrentLocation,
     isPinDetailActive,
-    pinCoordinate,
     pinName,
     setPinName,
     pinNotes,
@@ -144,7 +142,6 @@ export default function MainBottomSheet({
             <View className="px-4 py-4">
                 {isPinDetailActive && (
                     <PinDetailContent
-                        coordinate={pinCoordinate}
                         name={pinName}
                         setName={setPinName}
                         notes={pinNotes}

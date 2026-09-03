@@ -1,11 +1,11 @@
 import SuggestionRow from '@/components/SuggestionRow';
 import { MapboxSuggestion } from '@/hooks/useMapboxSearch';
 import { Ionicons } from '@expo/vector-icons';
+import { GlassView } from 'expo-glass-effect';
 import React, { useRef, useState } from 'react';
-import { ActivityIndicator, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 interface PinDetailContentProps {
-    coordinate: { latitude: number; longitude: number } | null;
     name: string;
     setName: (value: string) => void;
     notes: string;
@@ -23,7 +23,6 @@ interface PinDetailContentProps {
 }
 
 export default function PinDetailContent({
-    coordinate,
     name,
     setName,
     notes,
@@ -83,16 +82,6 @@ export default function PinDetailContent({
                 </TouchableOpacity>
             </View>
 
-            {/* Coordinate badge */}
-            {coordinate && (
-                <View className="flex-row items-center gap-1.5 mb-4">
-                    <Ionicons name="location-outline" size={14} color="#6B7280" />
-                    <Text className="text-gray-500 text-xs">
-                        {coordinate.latitude.toFixed(5)}, {coordinate.longitude.toFixed(5)}
-                    </Text>
-                </View>
-            )}
-
             {/* Place name */}
             <View className="mb-3 relative z-20">
                 <Text className="text-gray-400 text-xs font-medium mb-1.5 uppercase tracking-wide">
@@ -114,9 +103,10 @@ export default function PinDetailContent({
 
                 {showNameDropdown && (
                     <View
-                        className="absolute left-0 right-0 top-full mt-1.5 bg-gray-900 border border-gray-700/75 rounded-2xl overflow-hidden"
+                        className="absolute left-0 right-0 top-full mt-1.5 rounded-2xl border border-gray-700/75 overflow-hidden"
                         style={{ maxHeight: 240 }}
                     >
+                        <GlassView style={StyleSheet.absoluteFill} colorScheme="dark" />
                         {isNameSearching && nameSuggestions.length === 0 && (
                             <View className="flex-row items-center px-3 py-3">
                                 <ActivityIndicator size="small" color="#9CA3AF" />
@@ -216,20 +206,11 @@ export default function PinDetailContent({
                         <TouchableOpacity
                             onPress={onPickPhotos}
                             activeOpacity={0.7}
-                            style={{
-                                width: 80,
-                                height: 80,
-                                borderRadius: 12,
-                                borderWidth: 1.5,
-                                borderColor: '#374151',
-                                borderStyle: 'dashed',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: 4,
-                            }}
+                            className="bg-gray-600/60 border border-gray-700/75 rounded-xl items-center justify-center"
+                            style={{ width: 80, height: 80, gap: 4 }}
                         >
-                            <Ionicons name="camera-outline" size={22} color="#4B5563" />
-                            <Text style={{ color: '#4B5563', fontSize: 10 }}>Add</Text>
+                            <Ionicons name="camera-outline" size={22} color="#9CA3AF" />
+                            <Text className="text-gray-400" style={{ fontSize: 10 }}>Add</Text>
                         </TouchableOpacity>
                     )}
                 </ScrollView>

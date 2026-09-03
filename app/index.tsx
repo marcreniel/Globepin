@@ -627,7 +627,6 @@ export default function HomeScreen() {
                 onSelectLocation={handleSelectLocation}
                 onUseCurrentLocation={handleUseCurrentLocation}
                 isPinDetailActive={isPinDetailActive}
-                pinCoordinate={pinCoordinate}
                 pinName={pinName}
                 setPinName={setPinName}
                 pinNotes={pinNotes}
