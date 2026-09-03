@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -99,6 +98,9 @@ export default function HomeScreen() {
     const sheetRef = useRef<TrueSheet>(null);
     const currentDetentIndexRef = useRef(1);
     const preDropDetentIndex = useRef(1);
+    // Remembers how tall the pin-detail sheet settled last time, so later drops can
+    // animate straight to the right spot in one smooth motion instead of two.
+    const pinDetailSheetPosition = useRef<number | null>(null);
     const { animatedPosition } = useReanimatedTrueSheet();
 
     useEffect(() => {
@@ -182,16 +184,26 @@ export default function HomeScreen() {
         // Once the pin-detail form settles, nudge the map so the dropped pin sits
         // centered in the visible area above the sheet instead of under it.
         if (isPinDetailActive && index === 0 && pinCoordinate) {
+            pinDetailSheetPosition.current = position;
+
             const latDelta = regionRef.current.latitudeDelta;
             const visibleCenterY = position / 2;
+            const targetLatitude = pinCoordinate.latitude + latDelta * (visibleCenterY / screenHeight - 0.5);
+
+            // If handlePinDropped already animated straight to (roughly) this spot using a
+            // cached position, skip re-animating — a second animateToRegion call this close
+            // to the first would cut it off and look like a rigid snap instead of one glide.
+            const alreadyThere = Math.abs(regionRef.current.latitude - targetLatitude) < latDelta * 0.01;
+            if (alreadyThere) return;
+
             const newRegion: Region = {
-                latitude: pinCoordinate.latitude + latDelta * (visibleCenterY / screenHeight - 0.5),
+                latitude: targetLatitude,
                 longitude: pinCoordinate.longitude,
                 latitudeDelta: latDelta,
                 longitudeDelta: regionRef.current.longitudeDelta,
             };
             regionRef.current = newRegion;
-            mapRef.current?.animateToRegion(newRegion, 300);
+            mapRef.current?.animateToRegion(newRegion, 500);
             setRegion(newRegion);
             setLiveRegion(newRegion);
         }
@@ -280,18 +292,27 @@ export default function HomeScreen() {
         setIsPinDetailActive(true);
         sheetRef.current?.resize(0);
 
-        // Recenter on the pin at the current zoom right away; handleDetentChange nudges
-        // it up above the sheet once the sheet's settled height is known.
-        const recenterRegion: Region = {
-            latitude: coordinate.latitude,
+        // Animate straight to the pin, already nudged up above where the sheet will land.
+        // The form's content is the same every time, so a cached settled position from a
+        // previous drop is a reliable target — one smooth glide instead of a snap-then-nudge.
+        // Falls back to a plain recenter on the very first drop of a session, when
+        // handleDetentChange will do the one-time corrective pan once it learns the height.
+        const latDelta = regionRef.current.latitudeDelta;
+        const cachedPosition = pinDetailSheetPosition.current;
+        const targetLatitude = cachedPosition != null
+            ? coordinate.latitude + latDelta * ((cachedPosition / 2) / screenHeight - 0.5)
+            : coordinate.latitude;
+
+        const targetRegion: Region = {
+            latitude: targetLatitude,
             longitude: coordinate.longitude,
-            latitudeDelta: regionRef.current.latitudeDelta,
+            latitudeDelta: latDelta,
             longitudeDelta: regionRef.current.longitudeDelta,
         };
-        regionRef.current = recenterRegion;
-        mapRef.current?.animateToRegion(recenterRegion, 400);
-        setRegion(recenterRegion);
-        setLiveRegion(recenterRegion);
+        regionRef.current = targetRegion;
+        mapRef.current?.animateToRegion(targetRegion, 600);
+        setRegion(targetRegion);
+        setLiveRegion(targetRegion);
 
         // Best-effort autofill from the coordinate — never overwrite if the user has already typed.
         Location.reverseGeocodeAsync(coordinate)
@@ -624,8 +645,16 @@ export default function HomeScreen() {
                 ))}
 
                 {isPinDetailActive && pinCoordinate && (
-                    <Marker coordinate={pinCoordinate} anchor={{ x: 0.5, y: 1 }}>
-                        <Ionicons name="location" size={32} color="#EF4444" />
+                    <Marker
+                        coordinate={pinCoordinate}
+                        anchor={{ x: 0.5, y: 1 }}
+                        centerOffset={{ x: 0, y: -28 }}
+                    >
+                        <FindMyPin
+                            latitude={pinCoordinate.latitude}
+                            longitude={pinCoordinate.longitude}
+                            region={liveRegion}
+                        />
                     </Marker>
                 )}
             </StyledMapView>
