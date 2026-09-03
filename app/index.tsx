@@ -14,7 +14,7 @@ import DraggedPinOverlay from '@/components/DraggedPinOverlay';
 import FindMyPin from '@/components/FindMyPin';
 import MainBottomSheet from '@/components/MainBottomSheet';
 import MapFloatingControls from '@/components/MapFloatingControls';
-import PinDetailSheet, { PinDetailSheetHandle, PinDetails } from '@/components/PinDetailSheet';
+import PinDetailSheet, { PinDetails, PinDetailSheetHandle } from '@/components/PinDetailSheet';
 import ProfileButton from '@/components/ProfileButton';
 import usePinClusters from '@/hooks/usePinClusters';
 import { type TrueSheet } from '@lodev09/react-native-true-sheet';
