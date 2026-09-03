@@ -15,9 +15,9 @@ import { withUniwind } from 'uniwind';
 import DraggedPinOverlay from '@/components/DraggedPinOverlay';
 import FindMyPin from '@/components/FindMyPin';
 import MainBottomSheet from '@/components/MainBottomSheet';
+import { AppTab } from '@/components/BottomTabs';
 import MapFloatingControls from '@/components/MapFloatingControls';
 import { PinVisibility } from '@/components/PinDetailContent';
-import ProfileButton from '@/components/ProfileButton';
 import useMapboxSearch, { MapboxSuggestion } from '@/hooks/useMapboxSearch';
 import usePinClusters from '@/hooks/usePinClusters';
 import { type TrueSheet } from '@lodev09/react-native-true-sheet';
@@ -74,6 +74,7 @@ export default function HomeScreen() {
     const [locationFilter, setLocationFilter] = useState<LocationFilter | null>(null);
     const [isLocationPickerActive, setIsLocationPickerActive] = useState(false);
     const [locationQuery, setLocationQuery] = useState('');
+    const [activeTab, setActiveTab] = useState<AppTab>('home');
     const [isPinDetailActive, setIsPinDetailActive] = useState(false);
     const [pinCoordinate, setPinCoordinate] = useState<{ latitude: number; longitude: number } | null>(null);
     const [pinName, setPinName] = useState('');
@@ -211,6 +212,12 @@ export default function HomeScreen() {
             mapRef.current?.animateToRegion(newRegion, 500);
         }
     }, [isPinDetailActive, pinCoordinate, screenHeight]);
+
+    const handleSelectTab = useCallback((tab: AppTab) => {
+        setActiveTab(tab);
+        // Profile has a single detent; Home/Feed open at the middle one.
+        sheetRef.current?.resize(tab === 'profile' ? 0 : 1);
+    }, []);
 
     const handleSearchFocus = useCallback(() => {
         // Programmatically expand the sheet to its maximum detent (index 2 which is 0.8)
@@ -664,9 +671,7 @@ export default function HomeScreen() {
                 )}
             </StyledMapView>
 
-            <ProfileButton />
-
-            {!isPinDetailActive && (
+            {activeTab === 'home' && !isPinDetailActive && (
                 <MapFloatingControls
                     floatingStyle={floatingStyle}
                     panHandlers={panResponder.panHandlers}
@@ -718,6 +723,8 @@ export default function HomeScreen() {
                 nameSuggestions={nameSuggestions}
                 isNameSearching={isNameSearching}
                 onSelectNameSuggestion={handleSelectNameSuggestion}
+                activeTab={activeTab}
+                onSelectTab={handleSelectTab}
             />
 
             {isDragging && (
