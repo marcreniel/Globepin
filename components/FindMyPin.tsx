@@ -1,11 +1,8 @@
 import { GlassContainer, GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 import { Region } from 'react-native-maps';
 import Svg, { Path } from 'react-native-svg';
-
-// Liquid Glass is iOS 26+; everywhere else keeps the original filled SVG shape.
-const LIQUID_GLASS = isLiquidGlassAvailable();
 
 interface FindMyPinProps {
     size?: number;
@@ -39,6 +36,10 @@ export default function FindMyPin({ size = 52, emoji = '📍', count, latitude, 
     const headSize = size * (48 / 52);
     const tailSize = size * 0.34;
     const tailCenterY = height * (55 / 56) - (tailSize * Math.SQRT2) / 2;
+    // Checked lazily, not at module scope: evaluating this at import time can run
+    // before the native module is ready and report false, dropping the whole session
+    // back to the SVG shape. Liquid Glass is iOS 26+; elsewhere the SVG is the fallback.
+    const liquidGlass = useMemo(() => isLiquidGlassAvailable(), []);
     const animScale = useRef(new Animated.Value(1)).current;
     // Subtler bouncy pulse on mount (merge = grow from 1.15, split = shrink from 0.8)
     const mergeScale = useRef(new Animated.Value(isCluster ? 1.15 : 0.8)).current;
@@ -78,7 +79,7 @@ export default function FindMyPin({ size = 52, emoji = '📍', count, latitude, 
                 StyleSheet.absoluteFill,
                 { alignItems: 'center', transform: [{ scale: mergeScale }] }
             ]}>
-                {LIQUID_GLASS ? (
+                {liquidGlass ? (
                     // The teardrop is a circle plus a point, so it's built from two
                     // glass shapes that GlassContainer merges into one fluid blob —
                     // the glass effect can't be clipped to an arbitrary SVG path.
