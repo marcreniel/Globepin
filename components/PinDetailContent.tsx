@@ -68,6 +68,8 @@ export default function PinDetailContent({
     const handleNameFocus = () => {
         if (blurTimeout.current) clearTimeout(blurTimeout.current);
         setIsNameFocused(true);
+        // Only one floating dropdown should ever be on screen at once.
+        setIsVisibilityMenuOpen(false);
     };
 
     const handleNameBlur = () => {
@@ -89,6 +91,16 @@ export default function PinDetailContent({
     const handleSelectVisibility = (value: PinVisibility) => {
         setVisibility(value);
         setIsVisibilityMenuOpen(false);
+    };
+
+    const handleToggleVisibilityMenu = () => {
+        setIsVisibilityMenuOpen((isOpen) => {
+            if (!isOpen) {
+                // Only one floating dropdown should ever be on screen at once.
+                Keyboard.dismiss();
+            }
+            return !isOpen;
+        });
     };
 
     const handleToggleRating = () => {
@@ -117,7 +129,7 @@ export default function PinDetailContent({
                     <TouchableOpacity
                         activeOpacity={0.7}
                         className="flex-row items-center rounded-2xl overflow-hidden pl-2.5 pr-2 py-1.5"
-                        onPress={() => setIsVisibilityMenuOpen((v) => !v)}
+                        onPress={handleToggleVisibilityMenu}
                     >
                         <GlassView style={StyleSheet.absoluteFill} colorScheme="dark" />
                         <Ionicons
