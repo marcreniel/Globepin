@@ -16,7 +16,7 @@
     "@gluestack-ui/core": "^4.1.0-alpha.0",
     "@gluestack-ui/utils": "^4.1.0-alpha.0",
     "@legendapp/motion": "^2.5.3",
-    "@lodev09/react-native-true-sheet": "^3.9.9",
+    "@lodev09/react-native-true-sheet": "file:./modules/react-native-true-sheet",
     "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/elements": "^2.6.3",
     "@react-navigation/native": "^7.1.8",

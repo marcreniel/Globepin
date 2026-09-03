@@ -1,7 +1,5 @@
 import { HelloWave } from '@/components/hello-wave';
-import BottomTabs, { AppTab } from '@/components/BottomTabs';
 import PinDetailContent, { PinVisibility } from '@/components/PinDetailContent';
-import ProfileContent from '@/components/ProfileContent';
 import SuggestionRow from '@/components/SuggestionRow';
 import { HStack } from '@/components/ui/hstack';
 import { MapboxSuggestion } from '@/hooks/useMapboxSearch';
@@ -9,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { TrueSheet } from '@lodev09/react-native-true-sheet';
 import { ReanimatedTrueSheet } from '@lodev09/react-native-true-sheet/reanimated';
 import React from 'react';
-import { ActivityIndicator, Image, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 const RECENTLY_VISITED = [
@@ -71,8 +69,6 @@ interface MainBottomSheetProps {
     nameSuggestions: MapboxSuggestion[];
     isNameSearching: boolean;
     onSelectNameSuggestion: (suggestion: MapboxSuggestion) => void;
-    activeTab: AppTab;
-    onSelectTab: (tab: AppTab) => void;
 }
 
 export default function MainBottomSheet({
@@ -115,28 +111,14 @@ export default function MainBottomSheet({
     nameSuggestions,
     isNameSearching,
     onSelectNameSuggestion,
-    activeTab,
-    onSelectTab,
 }: MainBottomSheetProps) {
-    const { height: windowHeight } = useWindowDimensions();
     const isSearchActive = searchQuery.trim().length > 0;
-    // Profile's ScrollView needs a bounded parent for flex-1 to resolve, otherwise it
-    // expands to its full content height and pushes the tab bar out of the sheet.
-    const PROFILE_DETENT = 0.85;
-    // Profile needs a single tall detent to fit its content; Home/Feed keep the
-    // original three. The tab bar itself is inside the sheet because a native
-    // sheet renders above RN views — anything floated outside would sit behind it.
-    const detents: ('auto' | number)[] = activeTab === 'profile'
-        ? [PROFILE_DETENT]
-        : ['auto', 0.42, 0.58];
-    const showTabs = !isPinDetailActive;
-
     return (
         <ReanimatedTrueSheet
             ref={sheetRef}
             name="search-sheet"
-            detents={detents}
-            initialDetentIndex={activeTab === 'profile' ? 0 : 1}
+            detents={['auto', 0.33, 0.47]}
+            initialDetentIndex={1}
             dismissible={false}
             detached={true}
             dimmed={false}
@@ -145,21 +127,8 @@ export default function MainBottomSheet({
             className="border border-gray-700/75"
             onDetentChange={handleDetentChange}
         >
-            <View
-                className="px-4 py-4"
-                style={activeTab === 'profile' ? { height: windowHeight * PROFILE_DETENT } : undefined}
-            >
-                {activeTab === 'profile' && <ProfileContent />}
-
-                {activeTab === 'feed' && (
-                    <View className="items-center justify-center py-16 gap-2">
-                        <Ionicons name="newspaper-outline" size={32} color="#6B7280" />
-                        <Text className="text-white text-base font-semibold">Feed</Text>
-                        <Text className="text-gray-400 text-xs">Coming soon</Text>
-                    </View>
-                )}
-
-                {activeTab === 'home' && isPinDetailActive && (
+            <View className="px-4 py-4">
+                {isPinDetailActive && (
                     <PinDetailContent
                         name={pinName}
                         setName={setPinName}
@@ -182,7 +151,7 @@ export default function MainBottomSheet({
                     />
                 )}
 
-                {activeTab === 'home' && !isPinDetailActive && (<>
+                {!isPinDetailActive && (<>
                 {isLocationPickerActive ? (
                     // Same treatment as the PinDetailContent fields (Place Name, Date, Notes).
                     // Deliberately not a nested GlassView: the sheet is already a glass
@@ -339,8 +308,6 @@ export default function MainBottomSheet({
                     </Animated.View>
                 )}
                 </>)}
-
-                {showTabs && <BottomTabs activeTab={activeTab} onSelectTab={onSelectTab} />}
             </View>
         </ReanimatedTrueSheet>
     );

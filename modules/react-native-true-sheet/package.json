@@ -1,0 +1,206 @@
+{
+  "name": "@lodev09/react-native-true-sheet",
+  "version": "3.9.9",
+  "description": "The true native bottom sheet experience for your React Native Apps.",
+  "source": "./src/index.ts",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./mock": "./lib/module/mocks/index.js",
+    "./navigation/mock": "./lib/module/mocks/navigation.js",
+    "./reanimated/mock": "./lib/module/mocks/reanimated.js",
+    "./reanimated": {
+      "source": "./src/reanimated/index.ts",
+      "types": "./src/reanimated/index.ts",
+      "default": "./src/reanimated/index.ts"
+    },
+    "./navigation": {
+      "source": "./src/navigation/index.ts",
+      "types": "./src/navigation/index.ts",
+      "default": "./src/navigation/index.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "lib",
+    "android",
+    "ios",
+    "common",
+    "*.podspec",
+    "react-native.config.js",
+    "!ios/build",
+    "!android/build",
+    "!android/gradle",
+    "!android/gradlew",
+    "!android/gradlew.bat",
+    "!android/local.properties",
+    "!**/__tests__",
+    "!**/__fixtures__",
+    "!**/.*"
+  ],
+  "scripts": {},
+  "keywords": [
+    "react-native",
+    "ios",
+    "android",
+    "bottom-sheet",
+    "native-sheet",
+    "sheet",
+    "fabric",
+    "turbo-module"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lodev09/react-native-true-sheet.git"
+  },
+  "author": "Jovanni Lo <lodev09@gmail.com> (https://github.com/lodev09)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lodev09/react-native-true-sheet/issues"
+  },
+  "homepage": "https://sheet.lodev09.com",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "resolutions": {
+    "@types/react": "19.1.1",
+    "react-native-reanimated": "^4.2.0",
+    "react-native-worklets": "^0.7.0"
+  },
+  "peerDependencies": {
+    "@gorhom/bottom-sheet": ">=5",
+    "@react-navigation/native": ">=7",
+    "react": "*",
+    "react-native": "*",
+    "react-native-reanimated": ">=4",
+    "react-native-worklets": "*"
+  },
+  "peerDependenciesMeta": {
+    "@gorhom/bottom-sheet": {
+      "optional": true
+    },
+    "@react-navigation/native": {
+      "optional": true
+    },
+    "react-native-reanimated": {
+      "optional": true
+    },
+    "react-native-worklets": {
+      "optional": true
+    }
+  },
+  "workspaces": [
+    "example/bare",
+    "example/expo",
+    "example/shared",
+    "docs"
+  ],
+  "packageManager": "yarn@4.11.0",
+  "jest": {
+    "preset": "react-native",
+    "setupFilesAfterEnv": [
+      "<rootDir>/jest.setup.js"
+    ],
+    "transformIgnorePatterns": [
+      "node_modules/(?!(react-native|@react-native|react-native-reanimated|react-native-worklets|react-native-worklets-core)/)"
+    ],
+    "modulePathIgnorePatterns": [
+      "<rootDir>/example/bare/node_modules",
+      "<rootDir>/example/expo/node_modules",
+      "<rootDir>/example/shared/node_modules",
+      "<rootDir>/lib/",
+      "<rootDir>/docs/node_modules",
+      "<rootDir>/docs/build"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "<rootDir>/example/"
+    ]
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "release-it": {
+    "git": {
+      "commitMessage": "chore: release ${version}",
+      "tagName": "v${version}",
+      "tagExclude": "*-beta*"
+    },
+    "npm": {
+      "publish": false
+    },
+    "hooks": {
+      "before:init": "yarn test",
+      "after:bump": "yarn tidy && sed -i '' 's/## Unreleased/## Unreleased\\n\\n## ${version}/' CHANGELOG.md"
+    },
+    "github": {
+      "release": true,
+      "comments": {
+        "submit": true,
+        "issue": ":rocket: _This issue has been resolved in v${version}. See [${releaseName}](${releaseUrl}) for release notes._",
+        "pr": ":rocket: _This pull request is included in v${version}. See [${releaseName}](${releaseUrl}) for release notes._"
+      }
+    },
+    "plugins": {
+      "@release-it/conventional-changelog": {
+        "preset": {
+          "name": "angular"
+        }
+      }
+    }
+  },
+  "prettier": {
+    "quoteProps": "consistent",
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "es5",
+    "useTabs": false,
+    "printWidth": 100
+  },
+  "create-react-native-library": {
+    "languages": "kotlin-objc",
+    "type": "fabric-view",
+    "tools": [
+      "eslint",
+      "lefthook",
+      "release-it",
+      "jest"
+    ],
+    "version": "0.55.0"
+  },
+  "codegenConfig": {
+    "name": "TrueSheetSpec",
+    "type": "all",
+    "jsSrcsDir": "src",
+    "android": {
+      "javaPackageName": "com.lodev09.truesheet"
+    },
+    "ios": {
+      "components": {
+        "TrueSheetView": {
+          "className": "TrueSheetView"
+        },
+        "TrueSheetContainerView": {
+          "className": "TrueSheetContainerView"
+        },
+        "TrueSheetContentView": {
+          "className": "TrueSheetContentView"
+        },
+        "TrueSheetHeaderView": {
+          "className": "TrueSheetHeaderView"
+        },
+        "TrueSheetFooterView": {
+          "className": "TrueSheetFooterView"
+        }
+      }
+    }
+  }
+}
