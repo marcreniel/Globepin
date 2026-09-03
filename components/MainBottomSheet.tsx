@@ -29,25 +29,6 @@ const RECENTLY_VISITED = [
     },
 ];
 
-const MOST_POPULAR = [
-    {
-        name: 'New York',
-        image: 'https://images.unsplash.com/photo-1499092346589-b9b6be3e94b2?w=400&h=400&fit=crop',
-    },
-    {
-        name: 'Rome',
-        image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400&h=400&fit=crop',
-    },
-    {
-        name: 'Bangkok',
-        image: 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=400&h=400&fit=crop',
-    },
-    {
-        name: 'Sydney',
-        image: 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=400&h=400&fit=crop',
-    },
-];
-
 interface MainBottomSheetProps {
     sheetRef: React.RefObject<TrueSheet | null>;
     searchQuery: string;
@@ -321,27 +302,6 @@ export default function MainBottomSheet({
                                         <Text className="text-white text-sm font-semibold">No Favorites Found</Text>
                                         <Text className="text-gray-400 text-xs text-center px-6">Click on the star on your pins to favorite them!</Text>
                                     </View>
-                                </View>
-
-                                {/* Most Popular */}
-                                <View className="mt-6 px-2">
-                                    <Text className="text-white text-l font-bold mb-3">
-                                        Most Popular &rsaquo;
-                                    </Text>
-                                    <HStack space="sm">
-                                        {MOST_POPULAR.map((city) => (
-                                            <TouchableOpacity key={city.name} activeOpacity={0.8} className="flex-1">
-                                                <View className="aspect-square rounded-xl overflow-hidden">
-                                                    <Image
-                                                        source={{ uri: city.image }}
-                                                        className="w-full h-full"
-                                                        resizeMode="cover"
-                                                    />
-                                                </View>
-                                                <Text className="text-white text-xs font-medium mt-1.5">{city.name}</Text>
-                                            </TouchableOpacity>
-                                        ))}
-                                    </HStack>
                                 </View>
                             </Animated.View>
                         )}
