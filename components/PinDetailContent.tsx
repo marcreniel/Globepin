@@ -9,13 +9,11 @@ import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 export type PinVisibility = 'public' | 'private';
 
-// These dropdowns float over other form fields rather than the map or empty
-// sheet space. Liquid Glass's blur still lets the shapes/text behind it read
-// through no matter how opaque the tint goes — tint colors the blur, it
-// doesn't cover it — so legibility here needs a plain solid background
-// instead of GlassView. Matches the FindMyPin marker's dark fill
-// (components/FindMyPin.tsx) at full opacity.
-const DROPDOWN_SOLID_BG = 'rgb(30, 30, 30)';
+// The exact fill the FindMyPin marker uses (components/FindMyPin.tsx), so the
+// dropdowns carry the same slight translucency the pin does. A plain color
+// rather than GlassView: Liquid Glass's tint colors the blur without covering
+// it, so text behind stayed readable at any alpha.
+const DROPDOWN_SOLID_BG = 'rgba(30, 30, 30, 0.88)';
 
 interface PinDetailContentProps {
     name: string;
