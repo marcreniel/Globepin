@@ -1,4 +1,5 @@
 import { HelloWave } from '@/components/hello-wave';
+import PinDetailContent from '@/components/PinDetailContent';
 import { HStack } from '@/components/ui/hstack';
 import { MapboxSuggestion } from '@/hooks/useMapboxSearch';
 import { Ionicons } from '@expo/vector-icons';
@@ -95,6 +96,19 @@ interface MainBottomSheetProps {
     isLocationSearching: boolean;
     onSelectLocation: (suggestion: MapboxSuggestion) => void;
     onUseCurrentLocation: () => void;
+    isPinDetailActive: boolean;
+    pinCoordinate: { latitude: number; longitude: number } | null;
+    pinName: string;
+    setPinName: (value: string) => void;
+    pinNotes: string;
+    setPinNotes: (value: string) => void;
+    pinDateVisited: string;
+    setPinDateVisited: (value: string) => void;
+    pinPhotos: string[];
+    onPickPinPhotos: () => void;
+    onRemovePinPhoto: (index: number) => void;
+    onSavePinDetail: () => void;
+    onCancelPinDetail: () => void;
 }
 
 export default function MainBottomSheet({
@@ -118,6 +132,19 @@ export default function MainBottomSheet({
     isLocationSearching,
     onSelectLocation,
     onUseCurrentLocation,
+    isPinDetailActive,
+    pinCoordinate,
+    pinName,
+    setPinName,
+    pinNotes,
+    setPinNotes,
+    pinDateVisited,
+    setPinDateVisited,
+    pinPhotos,
+    onPickPinPhotos,
+    onRemovePinPhoto,
+    onSavePinDetail,
+    onCancelPinDetail,
 }: MainBottomSheetProps) {
     const isSearchActive = searchQuery.trim().length > 0;
     return (
@@ -135,6 +162,24 @@ export default function MainBottomSheet({
             onDetentChange={handleDetentChange}
         >
             <View className="px-4 py-4">
+                {isPinDetailActive && (
+                    <PinDetailContent
+                        coordinate={pinCoordinate}
+                        name={pinName}
+                        setName={setPinName}
+                        notes={pinNotes}
+                        setNotes={setPinNotes}
+                        dateVisited={pinDateVisited}
+                        setDateVisited={setPinDateVisited}
+                        photos={pinPhotos}
+                        onPickPhotos={onPickPinPhotos}
+                        onRemovePhoto={onRemovePinPhoto}
+                        onSave={onSavePinDetail}
+                        onCancel={onCancelPinDetail}
+                    />
+                )}
+
+                {!isPinDetailActive && (<>
                 {isLocationPickerActive ? (
                     <View className="flex-row items-center rounded-[20px] border border-gray-700/75 overflow-hidden px-4 py-3">
                         <GlassView style={StyleSheet.absoluteFill} colorScheme="dark" />
@@ -309,6 +354,7 @@ export default function MainBottomSheet({
                         )}
                     </Animated.View>
                 )}
+                </>)}
             </View>
         </ReanimatedTrueSheet>
     );

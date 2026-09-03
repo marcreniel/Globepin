@@ -1,3 +1,4 @@
+import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -15,7 +16,6 @@ import DraggedPinOverlay from '@/components/DraggedPinOverlay';
 import FindMyPin from '@/components/FindMyPin';
 import MainBottomSheet from '@/components/MainBottomSheet';
 import MapFloatingControls from '@/components/MapFloatingControls';
-import PinDetailSheet, { PinDetails, PinDetailSheetHandle } from '@/components/PinDetailSheet';
 import ProfileButton from '@/components/ProfileButton';
 import useMapboxSearch, { MapboxSuggestion } from '@/hooks/useMapboxSearch';
 import usePinClusters from '@/hooks/usePinClusters';
@@ -71,6 +71,12 @@ export default function HomeScreen() {
     const [locationFilter, setLocationFilter] = useState<LocationFilter | null>(null);
     const [isLocationPickerActive, setIsLocationPickerActive] = useState(false);
     const [locationQuery, setLocationQuery] = useState('');
+    const [isPinDetailActive, setIsPinDetailActive] = useState(false);
+    const [pinCoordinate, setPinCoordinate] = useState<{ latitude: number; longitude: number } | null>(null);
+    const [pinName, setPinName] = useState('');
+    const [pinNotes, setPinNotes] = useState('');
+    const [pinDateVisited, setPinDateVisited] = useState('');
+    const [pinPhotos, setPinPhotos] = useState<string[]>([]);
     const dragPosition = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current; // tracks finger screen position
     const dragScale = useRef(new Animated.Value(0)).current;
     const wiggleRotation = useRef(new Animated.Value(0)).current;
@@ -87,7 +93,8 @@ export default function HomeScreen() {
     const { height: screenHeight } = useWindowDimensions();
 
     const sheetRef = useRef<TrueSheet>(null);
-    const pinDetailSheetRef = useRef<PinDetailSheetHandle>(null);
+    const currentDetentIndexRef = useRef(1);
+    const preDropDetentIndex = useRef(1);
     const { animatedPosition } = useReanimatedTrueSheet();
 
     useEffect(() => {
@@ -165,6 +172,7 @@ export default function HomeScreen() {
     const handleDetentChange = useCallback((e: any) => {
         const { index, position } = e.nativeEvent;
         console.log('Sheet snapped to detent:', index, position);
+        currentDetentIndexRef.current = index;
         setCurrentDetentIndex(index);
     }, []);
 
@@ -241,16 +249,62 @@ export default function HomeScreen() {
         sheetRef.current?.resize(1);
     }, []);
 
-    const handlePinSave = useCallback((details: PinDetails) => {
+    const handlePinDropped = useCallback((coordinate: { latitude: number; longitude: number }) => {
+        preDropDetentIndex.current = currentDetentIndexRef.current;
+        setPinCoordinate(coordinate);
+        setPinName('');
+        setPinNotes('');
+        setPinPhotos([]);
+        setPinDateVisited(new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }));
+        setIsPinDetailActive(true);
+        sheetRef.current?.resize(0);
+    }, []);
+
+    const handleCancelPinDetail = useCallback(() => {
+        setIsPinDetailActive(false);
+        Keyboard.dismiss();
+        sheetRef.current?.resize(preDropDetentIndex.current);
+    }, []);
+
+    const handleSavePinDetail = useCallback(() => {
+        if (!pinCoordinate) return;
         setPins((prev) => [...prev, {
             id: Date.now().toString(),
-            latitude: details.latitude,
-            longitude: details.longitude,
-            name: details.name,
-            notes: details.notes,
-            dateVisited: details.dateVisited,
-            photos: details.photos,
+            latitude: pinCoordinate.latitude,
+            longitude: pinCoordinate.longitude,
+            name: pinName.trim() || 'Untitled Pin',
+            notes: pinNotes.trim(),
+            dateVisited: pinDateVisited,
+            photos: pinPhotos,
         }]);
+        setIsPinDetailActive(false);
+        Keyboard.dismiss();
+        sheetRef.current?.resize(preDropDetentIndex.current);
+    }, [pinCoordinate, pinName, pinNotes, pinDateVisited, pinPhotos]);
+
+    const handlePickPinPhotos = useCallback(async () => {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') return;
+
+        const remaining = 10 - pinPhotos.length;
+        if (remaining <= 0) return;
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsMultipleSelection: true,
+            selectionLimit: remaining,
+            quality: 0.8,
+            orderedSelection: true,
+        });
+
+        if (!result.canceled) {
+            const uris = result.assets.map((a) => a.uri);
+            setPinPhotos((prev) => [...prev, ...uris].slice(0, 10));
+        }
+    }, [pinPhotos.length]);
+
+    const handleRemovePinPhoto = useCallback((index: number) => {
+        setPinPhotos((prev) => prev.filter((_, i) => i !== index));
     }, []);
 
     const fingerPos = useRef({ x: 0, y: 0 });
@@ -457,7 +511,7 @@ export default function HomeScreen() {
                         y: screenY,
                     });
                     if (coordinate) {
-                        pinDetailSheetRef.current?.present(coordinate);
+                        handlePinDropped(coordinate);
                     }
                 } catch (error) {
                     console.log('Could not place pin:', error);
@@ -554,6 +608,19 @@ export default function HomeScreen() {
                 isLocationSearching={isLocationSearching}
                 onSelectLocation={handleSelectLocation}
                 onUseCurrentLocation={handleUseCurrentLocation}
+                isPinDetailActive={isPinDetailActive}
+                pinCoordinate={pinCoordinate}
+                pinName={pinName}
+                setPinName={setPinName}
+                pinNotes={pinNotes}
+                setPinNotes={setPinNotes}
+                pinDateVisited={pinDateVisited}
+                setPinDateVisited={setPinDateVisited}
+                pinPhotos={pinPhotos}
+                onPickPinPhotos={handlePickPinPhotos}
+                onRemovePinPhoto={handleRemovePinPhoto}
+                onSavePinDetail={handleSavePinDetail}
+                onCancelPinDetail={handleCancelPinDetail}
             />
 
             {isDragging && (
@@ -564,11 +631,6 @@ export default function HomeScreen() {
                     wiggleRotation={wiggleRotation}
                 />
             )}
-
-            <PinDetailSheet
-                ref={pinDetailSheetRef}
-                onSave={handlePinSave}
-            />
         </View>
     );
 }
