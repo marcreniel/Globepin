@@ -101,6 +101,10 @@ export default function HomeScreen() {
     // Remembers how tall the pin-detail sheet settled last time, so later drops can
     // animate straight to the right spot in one smooth motion instead of two.
     const pinDetailSheetPosition = useRef<number | null>(null);
+    // Whether handlePinDropped already animated to the correct nudged-up spot using a
+    // cached position. Checked (not region state, which onRegionChange keeps overwriting
+    // mid-animation) so handleDetentChange knows whether a corrective pan is still needed.
+    const pinPanIsAccurate = useRef(false);
     const { animatedPosition } = useReanimatedTrueSheet();
 
     useEffect(() => {
@@ -186,26 +190,20 @@ export default function HomeScreen() {
         if (isPinDetailActive && index === 0 && pinCoordinate) {
             pinDetailSheetPosition.current = position;
 
+            // handlePinDropped already animated straight to the right spot using a cached
+            // position — a second animateToRegion here would cut that motion off mid-flight
+            // and look like a glitch, so only correct when it didn't have one to work from.
+            if (pinPanIsAccurate.current) return;
+
             const latDelta = regionRef.current.latitudeDelta;
             const visibleCenterY = position / 2;
-            const targetLatitude = pinCoordinate.latitude + latDelta * (visibleCenterY / screenHeight - 0.5);
-
-            // If handlePinDropped already animated straight to (roughly) this spot using a
-            // cached position, skip re-animating — a second animateToRegion call this close
-            // to the first would cut it off and look like a rigid snap instead of one glide.
-            const alreadyThere = Math.abs(regionRef.current.latitude - targetLatitude) < latDelta * 0.01;
-            if (alreadyThere) return;
-
             const newRegion: Region = {
-                latitude: targetLatitude,
+                latitude: pinCoordinate.latitude + latDelta * (visibleCenterY / screenHeight - 0.5),
                 longitude: pinCoordinate.longitude,
                 latitudeDelta: latDelta,
                 longitudeDelta: regionRef.current.longitudeDelta,
             };
-            regionRef.current = newRegion;
             mapRef.current?.animateToRegion(newRegion, 500);
-            setRegion(newRegion);
-            setLiveRegion(newRegion);
         }
     }, [isPinDetailActive, pinCoordinate, screenHeight]);
 
@@ -299,6 +297,7 @@ export default function HomeScreen() {
         // handleDetentChange will do the one-time corrective pan once it learns the height.
         const latDelta = regionRef.current.latitudeDelta;
         const cachedPosition = pinDetailSheetPosition.current;
+        pinPanIsAccurate.current = cachedPosition != null;
         const targetLatitude = cachedPosition != null
             ? coordinate.latitude + latDelta * ((cachedPosition / 2) / screenHeight - 0.5)
             : coordinate.latitude;
@@ -309,10 +308,7 @@ export default function HomeScreen() {
             latitudeDelta: latDelta,
             longitudeDelta: regionRef.current.longitudeDelta,
         };
-        regionRef.current = targetRegion;
         mapRef.current?.animateToRegion(targetRegion, 600);
-        setRegion(targetRegion);
-        setLiveRegion(targetRegion);
 
         // Best-effort autofill from the coordinate — never overwrite if the user has already typed.
         Location.reverseGeocodeAsync(coordinate)
