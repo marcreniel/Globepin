@@ -4,8 +4,9 @@ import { MapboxSuggestion } from '@/hooks/useMapboxSearch';
 import { Ionicons } from '@expo/vector-icons';
 import { TrueSheet } from '@lodev09/react-native-true-sheet';
 import { ReanimatedTrueSheet } from '@lodev09/react-native-true-sheet/reanimated';
+import { GlassView } from 'expo-glass-effect';
 import React from 'react';
-import { ActivityIndicator, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 const RECENTLY_VISITED = [
@@ -135,7 +136,8 @@ export default function MainBottomSheet({
         >
             <View className="px-4 py-4">
                 {isLocationPickerActive ? (
-                    <View className="flex-row items-center bg-gray-700/50 border border-gray-600/50 rounded-[20px] px-4 py-3">
+                    <View className="flex-row items-center rounded-[20px] border border-gray-700/75 overflow-hidden px-4 py-3">
+                        <GlassView style={StyleSheet.absoluteFill} colorScheme="dark" />
                         <TouchableOpacity activeOpacity={0.7} onPress={onCloseLocationPicker} hitSlop={8}>
                             <Ionicons name="arrow-back" size={20} color="#9CA3AF" />
                         </TouchableOpacity>
@@ -150,13 +152,14 @@ export default function MainBottomSheet({
                         />
                     </View>
                 ) : (
-                    <View className="flex-row items-center bg-gray-700/50 border border-gray-600/50 rounded-[20px] pl-1.5 pr-4 py-1.5">
+                    <View className="flex-row items-center rounded-[20px] border border-gray-700/75 overflow-hidden pl-1.5 pr-4 py-1.5">
+                        <GlassView style={StyleSheet.absoluteFill} colorScheme="dark" />
                         <TouchableOpacity
                             activeOpacity={0.7}
                             className="flex-row items-center bg-gray-600/60 rounded-2xl pl-2.5 pr-2 py-2 mr-2"
                             onPress={onPressLocationPill}
                         >
-                            <Ionicons name="location" size={14} color="#60A5FA" />
+                            <Ionicons name="location" size={14} color="#9CA3AF" />
                             <Text
                                 className="text-white text-xs font-semibold ml-1"
                                 numberOfLines={1}
