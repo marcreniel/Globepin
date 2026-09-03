@@ -4,7 +4,7 @@ import { MapboxSuggestion } from '@/hooks/useMapboxSearch';
 import { Ionicons } from '@expo/vector-icons';
 import { GlassView } from 'expo-glass-effect';
 import React, { useRef, useState } from 'react';
-import { ActivityIndicator, Image, Keyboard, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { ActivityIndicator, Image, Keyboard, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export type PinVisibility = 'public' | 'private';
 
@@ -89,8 +89,10 @@ export default function PinDetailContent({
     const showNameDropdown = isNameFocused && name.trim().length >= 2;
 
     return (
-        <TouchableWithoutFeedback onPress={handleDismissOutside}>
-        <View>
+        <View
+            onStartShouldSetResponder={() => true}
+            onResponderRelease={handleDismissOutside}
+        >
             {/* Header row */}
             <View className="flex-row items-center justify-between mb-5">
                 <TouchableOpacity
@@ -304,6 +306,5 @@ export default function PinDetailContent({
                 </ScrollView>
             </View>
         </View>
-        </TouchableWithoutFeedback>
     );
 }
