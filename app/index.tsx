@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -177,7 +178,24 @@ export default function HomeScreen() {
         console.log('Sheet snapped to detent:', index, position);
         currentDetentIndexRef.current = index;
         setCurrentDetentIndex(index);
-    }, []);
+
+        // Once the pin-detail form settles, nudge the map so the dropped pin sits
+        // centered in the visible area above the sheet instead of under it.
+        if (isPinDetailActive && index === 0 && pinCoordinate) {
+            const latDelta = regionRef.current.latitudeDelta;
+            const visibleCenterY = position / 2;
+            const newRegion: Region = {
+                latitude: pinCoordinate.latitude + latDelta * (visibleCenterY / screenHeight - 0.5),
+                longitude: pinCoordinate.longitude,
+                latitudeDelta: latDelta,
+                longitudeDelta: regionRef.current.longitudeDelta,
+            };
+            regionRef.current = newRegion;
+            mapRef.current?.animateToRegion(newRegion, 300);
+            setRegion(newRegion);
+            setLiveRegion(newRegion);
+        }
+    }, [isPinDetailActive, pinCoordinate, screenHeight]);
 
     const handleSearchFocus = useCallback(() => {
         // Programmatically expand the sheet to its maximum detent (index 2 which is 0.8)
@@ -261,6 +279,19 @@ export default function HomeScreen() {
         setPinDateVisited(new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }));
         setIsPinDetailActive(true);
         sheetRef.current?.resize(0);
+
+        // Recenter on the pin at the current zoom right away; handleDetentChange nudges
+        // it up above the sheet once the sheet's settled height is known.
+        const recenterRegion: Region = {
+            latitude: coordinate.latitude,
+            longitude: coordinate.longitude,
+            latitudeDelta: regionRef.current.latitudeDelta,
+            longitudeDelta: regionRef.current.longitudeDelta,
+        };
+        regionRef.current = recenterRegion;
+        mapRef.current?.animateToRegion(recenterRegion, 400);
+        setRegion(recenterRegion);
+        setLiveRegion(recenterRegion);
 
         // Best-effort autofill from the coordinate — never overwrite if the user has already typed.
         Location.reverseGeocodeAsync(coordinate)
@@ -591,19 +622,27 @@ export default function HomeScreen() {
                         />
                     </Marker>
                 ))}
+
+                {isPinDetailActive && pinCoordinate && (
+                    <Marker coordinate={pinCoordinate} anchor={{ x: 0.5, y: 1 }}>
+                        <Ionicons name="location" size={32} color="#EF4444" />
+                    </Marker>
+                )}
             </StyledMapView>
 
             <ProfileButton />
 
-            <MapFloatingControls
-                floatingStyle={floatingStyle}
-                panHandlers={panResponder.panHandlers}
-                pinColorAnim={pinColorAnim}
-                mapStyle={mapStyle}
-                setMapStyle={setMapStyle}
-                isAtUserLocation={isAtUserLocation}
-                goToUserLocation={goToUserLocation}
-            />
+            {!isPinDetailActive && (
+                <MapFloatingControls
+                    floatingStyle={floatingStyle}
+                    panHandlers={panResponder.panHandlers}
+                    pinColorAnim={pinColorAnim}
+                    mapStyle={mapStyle}
+                    setMapStyle={setMapStyle}
+                    isAtUserLocation={isAtUserLocation}
+                    goToUserLocation={goToUserLocation}
+                />
+            )}
 
             <MainBottomSheet
                 sheetRef={sheetRef}
