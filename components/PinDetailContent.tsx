@@ -9,10 +9,6 @@ import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 export type PinVisibility = 'public' | 'private';
 
-// Shared tint so every glass dropdown in this form reads as the same surface,
-// regardless of what happens to be behind it (map vs. form content).
-const DROPDOWN_GLASS_TINT = 'rgba(17, 24, 39, 0.55)';
-
 interface PinDetailContentProps {
     name: string;
     setName: (value: string) => void;
@@ -150,7 +146,7 @@ export default function PinDetailContent({
                             className="absolute top-full mt-1.5 rounded-2xl border border-gray-700/75 overflow-hidden"
                             style={{ minWidth: 150, left: '50%', transform: [{ translateX: -75 }] }}
                         >
-                            <GlassView style={StyleSheet.absoluteFill} colorScheme="dark" tintColor={DROPDOWN_GLASS_TINT} />
+                            <GlassView style={StyleSheet.absoluteFill} colorScheme="dark" />
                             <TouchableOpacity
                                 activeOpacity={0.7}
                                 className="flex-row items-center py-3 px-2 border-b border-gray-700/50"
@@ -212,7 +208,7 @@ export default function PinDetailContent({
                         className="absolute left-0 right-0 top-full mt-1.5 rounded-2xl border border-gray-700/75 overflow-hidden"
                         style={{ maxHeight: 240 }}
                     >
-                        <GlassView style={StyleSheet.absoluteFill} colorScheme="dark" tintColor={DROPDOWN_GLASS_TINT} />
+                        <GlassView style={StyleSheet.absoluteFill} colorScheme="dark" />
                         {isNameSearching && nameSuggestions.length === 0 && (
                             <View className="flex-row items-center px-3 py-3">
                                 <ActivityIndicator size="small" color="#9CA3AF" />
