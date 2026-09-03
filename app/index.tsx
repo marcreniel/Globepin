@@ -90,6 +90,9 @@ export default function HomeScreen() {
     const { suggestions: locationSuggestions, isLoading: isLocationSearching, retrieve: retrieveLocation } = useMapboxSearch(locationQuery, {
         types: 'place,locality',
     });
+    const { suggestions: nameSuggestions, isLoading: isNameSearching } = useMapboxSearch(pinName, {
+        proximity: pinCoordinate,
+    });
     const { height: screenHeight } = useWindowDimensions();
 
     const sheetRef = useRef<TrueSheet>(null);
@@ -258,6 +261,21 @@ export default function HomeScreen() {
         setPinDateVisited(new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }));
         setIsPinDetailActive(true);
         sheetRef.current?.resize(0);
+
+        // Best-effort autofill from the coordinate — never overwrite if the user has already typed.
+        Location.reverseGeocodeAsync(coordinate)
+            .then(([place]) => {
+                const guess = place?.name || [place?.street, place?.city].filter(Boolean).join(', ');
+                if (!guess) return;
+                setPinName((current) => (current === '' ? guess : current));
+            })
+            .catch(() => {
+                // ignore — user can type a name manually
+            });
+    }, []);
+
+    const handleSelectNameSuggestion = useCallback((suggestion: MapboxSuggestion) => {
+        setPinName(suggestion.name);
     }, []);
 
     const handleCancelPinDetail = useCallback(() => {
@@ -621,6 +639,9 @@ export default function HomeScreen() {
                 onRemovePinPhoto={handleRemovePinPhoto}
                 onSavePinDetail={handleSavePinDetail}
                 onCancelPinDetail={handleCancelPinDetail}
+                nameSuggestions={nameSuggestions}
+                isNameSearching={isNameSearching}
+                onSelectNameSuggestion={handleSelectNameSuggestion}
             />
 
             {isDragging && (

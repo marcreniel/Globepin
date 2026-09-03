@@ -1,5 +1,6 @@
 import { HelloWave } from '@/components/hello-wave';
 import PinDetailContent from '@/components/PinDetailContent';
+import SuggestionRow from '@/components/SuggestionRow';
 import { HStack } from '@/components/ui/hstack';
 import { MapboxSuggestion } from '@/hooks/useMapboxSearch';
 import { Ionicons } from '@expo/vector-icons';
@@ -48,33 +49,6 @@ const MOST_POPULAR = [
     },
 ];
 
-interface SuggestionRowProps {
-    suggestion: MapboxSuggestion;
-    onPress: () => void;
-}
-
-function SuggestionRow({ suggestion, onPress }: SuggestionRowProps) {
-    return (
-        <TouchableOpacity
-            activeOpacity={0.7}
-            className="flex-row items-center py-3 px-2 border-b border-gray-700/50"
-            onPress={onPress}
-        >
-            <Ionicons name="location-outline" size={18} color="#9CA3AF" />
-            <View className="ml-3 flex-1">
-                <Text className="text-white text-sm font-medium" numberOfLines={1}>
-                    {suggestion.name}
-                </Text>
-                {!!suggestion.placeFormatted && (
-                    <Text className="text-gray-400 text-xs mt-0.5" numberOfLines={1}>
-                        {suggestion.placeFormatted}
-                    </Text>
-                )}
-            </View>
-        </TouchableOpacity>
-    );
-}
-
 interface MainBottomSheetProps {
     sheetRef: React.RefObject<TrueSheet | null>;
     searchQuery: string;
@@ -109,6 +83,9 @@ interface MainBottomSheetProps {
     onRemovePinPhoto: (index: number) => void;
     onSavePinDetail: () => void;
     onCancelPinDetail: () => void;
+    nameSuggestions: MapboxSuggestion[];
+    isNameSearching: boolean;
+    onSelectNameSuggestion: (suggestion: MapboxSuggestion) => void;
 }
 
 export default function MainBottomSheet({
@@ -145,6 +122,9 @@ export default function MainBottomSheet({
     onRemovePinPhoto,
     onSavePinDetail,
     onCancelPinDetail,
+    nameSuggestions,
+    isNameSearching,
+    onSelectNameSuggestion,
 }: MainBottomSheetProps) {
     const isSearchActive = searchQuery.trim().length > 0;
     return (
@@ -176,6 +156,9 @@ export default function MainBottomSheet({
                         onRemovePhoto={onRemovePinPhoto}
                         onSave={onSavePinDetail}
                         onCancel={onCancelPinDetail}
+                        nameSuggestions={nameSuggestions}
+                        isNameSearching={isNameSearching}
+                        onSelectNameSuggestion={onSelectNameSuggestion}
                     />
                 )}
 

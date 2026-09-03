@@ -1,6 +1,8 @@
+import SuggestionRow from '@/components/SuggestionRow';
+import { MapboxSuggestion } from '@/hooks/useMapboxSearch';
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { ActivityIndicator, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 interface PinDetailContentProps {
     coordinate: { latitude: number; longitude: number } | null;
@@ -15,6 +17,9 @@ interface PinDetailContentProps {
     onRemovePhoto: (index: number) => void;
     onSave: () => void;
     onCancel: () => void;
+    nameSuggestions: MapboxSuggestion[];
+    isNameSearching: boolean;
+    onSelectNameSuggestion: (suggestion: MapboxSuggestion) => void;
 }
 
 export default function PinDetailContent({
@@ -30,7 +35,31 @@ export default function PinDetailContent({
     onRemovePhoto,
     onSave,
     onCancel,
+    nameSuggestions,
+    isNameSearching,
+    onSelectNameSuggestion,
 }: PinDetailContentProps) {
+    const [isNameFocused, setIsNameFocused] = useState(false);
+    const blurTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const handleNameFocus = () => {
+        if (blurTimeout.current) clearTimeout(blurTimeout.current);
+        setIsNameFocused(true);
+    };
+
+    const handleNameBlur = () => {
+        // Delay so a tap on a suggestion row still registers before the list unmounts.
+        blurTimeout.current = setTimeout(() => setIsNameFocused(false), 150);
+    };
+
+    const handleSelectSuggestion = (suggestion: MapboxSuggestion) => {
+        if (blurTimeout.current) clearTimeout(blurTimeout.current);
+        setIsNameFocused(false);
+        onSelectNameSuggestion(suggestion);
+    };
+
+    const showNameDropdown = isNameFocused && name.trim().length >= 2;
+
     return (
         <View>
             {/* Header row */}
@@ -65,7 +94,7 @@ export default function PinDetailContent({
             )}
 
             {/* Place name */}
-            <View className="mb-3">
+            <View className="mb-3 relative z-20">
                 <Text className="text-gray-400 text-xs font-medium mb-1.5 uppercase tracking-wide">
                     Place Name
                 </Text>
@@ -73,6 +102,8 @@ export default function PinDetailContent({
                     <TextInput
                         value={name}
                         onChangeText={setName}
+                        onFocus={handleNameFocus}
+                        onBlur={handleNameBlur}
                         placeholder="e.g. Eiffel Tower"
                         placeholderTextColor="#4B5563"
                         style={{ color: '#fff', fontSize: 15 }}
@@ -80,6 +111,30 @@ export default function PinDetailContent({
                         autoCapitalize="words"
                     />
                 </View>
+
+                {showNameDropdown && (
+                    <View
+                        className="absolute left-0 right-0 top-full mt-1.5 bg-gray-900 border border-gray-700/75 rounded-2xl overflow-hidden"
+                        style={{ maxHeight: 240 }}
+                    >
+                        {isNameSearching && nameSuggestions.length === 0 && (
+                            <View className="flex-row items-center px-3 py-3">
+                                <ActivityIndicator size="small" color="#9CA3AF" />
+                                <Text className="text-gray-400 text-xs ml-2">Searching...</Text>
+                            </View>
+                        )}
+                        {!isNameSearching && nameSuggestions.length === 0 && (
+                            <Text className="text-gray-500 text-xs px-3 py-3">No matches found</Text>
+                        )}
+                        {nameSuggestions.map((suggestion) => (
+                            <SuggestionRow
+                                key={suggestion.id}
+                                suggestion={suggestion}
+                                onPress={() => handleSelectSuggestion(suggestion)}
+                            />
+                        ))}
+                    </View>
+                )}
             </View>
 
             {/* Date visited */}
