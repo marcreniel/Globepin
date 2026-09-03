@@ -2,6 +2,7 @@ import * as Location from 'expo-location';
 import React, { useCallback, useRef, useState } from 'react';
 import {
     Animated,
+    Keyboard,
     PanResponder,
     Platform,
     useWindowDimensions,
@@ -16,6 +17,7 @@ import MainBottomSheet from '@/components/MainBottomSheet';
 import MapFloatingControls from '@/components/MapFloatingControls';
 import PinDetailSheet, { PinDetails, PinDetailSheetHandle } from '@/components/PinDetailSheet';
 import ProfileButton from '@/components/ProfileButton';
+import useMapboxSearch, { MapboxSuggestion } from '@/hooks/useMapboxSearch';
 import usePinClusters from '@/hooks/usePinClusters';
 import { type TrueSheet } from '@lodev09/react-native-true-sheet';
 import { useReanimatedTrueSheet } from '@lodev09/react-native-true-sheet/reanimated';
@@ -65,6 +67,7 @@ export default function HomeScreen() {
     const pinColorAnim = useRef(new Animated.Value(0)).current; // 0=gray, 1=red
     const mapRef = useRef<MapView>(null);
     const clusters = usePinClusters(pins, liveRegion);
+    const { suggestions: searchSuggestions, isLoading: isSearching, retrieve } = useMapboxSearch(searchQuery);
     const { height: screenHeight } = useWindowDimensions();
 
     const sheetRef = useRef<TrueSheet>(null);
@@ -129,6 +132,25 @@ export default function HomeScreen() {
         // Programmatically expand the sheet to its maximum detent (index 2 which is 0.8)
         sheetRef.current?.resize(2);
     }, []);
+
+    const handleSelectSearchResult = useCallback(async (suggestion: MapboxSuggestion) => {
+        const result = await retrieve(suggestion.id);
+        if (!result) return;
+
+        const newRegion: Region = {
+            latitude: result.latitude,
+            longitude: result.longitude,
+            latitudeDelta: 0.05,
+            longitudeDelta: 0.05,
+        };
+        mapRef.current?.animateToRegion(newRegion, 1000);
+        setRegion(newRegion);
+        setLiveRegion(newRegion);
+        setIsAtUserLocation(false);
+        setSearchQuery('');
+        Keyboard.dismiss();
+        sheetRef.current?.resize(1);
+    }, [retrieve]);
 
     const handlePinSave = useCallback((details: PinDetails) => {
         setPins((prev) => [...prev, {
@@ -430,6 +452,9 @@ export default function HomeScreen() {
                 handleDetentChange={handleDetentChange}
                 welcomeStyle={welcomeStyle}
                 currentDetentIndex={currentDetentIndex}
+                searchSuggestions={searchSuggestions}
+                isSearching={isSearching}
+                onSelectSearchResult={handleSelectSearchResult}
             />
 
             {isDragging && (

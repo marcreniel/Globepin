@@ -1,10 +1,11 @@
 import { HelloWave } from '@/components/hello-wave';
 import { HStack } from '@/components/ui/hstack';
+import { MapboxSuggestion } from '@/hooks/useMapboxSearch';
 import { Ionicons } from '@expo/vector-icons';
 import { TrueSheet } from '@lodev09/react-native-true-sheet';
 import { ReanimatedTrueSheet } from '@lodev09/react-native-true-sheet/reanimated';
 import React from 'react';
-import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 const RECENTLY_VISITED = [
@@ -53,6 +54,9 @@ interface MainBottomSheetProps {
     handleDetentChange: (e: any) => void;
     welcomeStyle: any; // Animated Style
     currentDetentIndex: number;
+    searchSuggestions: MapboxSuggestion[];
+    isSearching: boolean;
+    onSelectSearchResult: (suggestion: MapboxSuggestion) => void;
 }
 
 export default function MainBottomSheet({
@@ -62,8 +66,12 @@ export default function MainBottomSheet({
     handleSearchFocus,
     handleDetentChange,
     welcomeStyle,
-    currentDetentIndex
+    currentDetentIndex,
+    searchSuggestions,
+    isSearching,
+    onSelectSearchResult,
 }: MainBottomSheetProps) {
+    const isSearchActive = searchQuery.trim().length > 0;
     return (
         <ReanimatedTrueSheet
             ref={sheetRef}
@@ -95,7 +103,41 @@ export default function MainBottomSheet({
                     </TouchableOpacity>
                 </View>
 
-                {currentDetentIndex > 0 && (
+                {isSearchActive && currentDetentIndex > 0 && (
+                    <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(150)} className="mt-3">
+                        {isSearching && searchSuggestions.length === 0 && (
+                            <View className="flex-row items-center px-2 py-4">
+                                <ActivityIndicator size="small" color="#9CA3AF" />
+                                <Text className="text-gray-400 text-sm ml-2">Searching...</Text>
+                            </View>
+                        )}
+                        {!isSearching && searchSuggestions.length === 0 && (
+                            <Text className="text-gray-400 text-sm px-2 py-4">No results found</Text>
+                        )}
+                        {searchSuggestions.map((suggestion) => (
+                            <TouchableOpacity
+                                key={suggestion.id}
+                                activeOpacity={0.7}
+                                className="flex-row items-center py-3 px-2 border-b border-gray-700/50"
+                                onPress={() => onSelectSearchResult(suggestion)}
+                            >
+                                <Ionicons name="location-outline" size={18} color="#9CA3AF" />
+                                <View className="ml-3 flex-1">
+                                    <Text className="text-white text-sm font-medium" numberOfLines={1}>
+                                        {suggestion.name}
+                                    </Text>
+                                    {!!suggestion.placeFormatted && (
+                                        <Text className="text-gray-400 text-xs mt-0.5" numberOfLines={1}>
+                                            {suggestion.placeFormatted}
+                                        </Text>
+                                    )}
+                                </View>
+                            </TouchableOpacity>
+                        ))}
+                    </Animated.View>
+                )}
+
+                {!isSearchActive && currentDetentIndex > 0 && (
                     <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(150)}>
                         <Animated.View className="px-2 mt-4" style={welcomeStyle} pointerEvents="none">
                             <View className="flex-row items-center mb-1">
