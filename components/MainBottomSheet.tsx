@@ -46,6 +46,33 @@ const MOST_POPULAR = [
     },
 ];
 
+interface SuggestionRowProps {
+    suggestion: MapboxSuggestion;
+    onPress: () => void;
+}
+
+function SuggestionRow({ suggestion, onPress }: SuggestionRowProps) {
+    return (
+        <TouchableOpacity
+            activeOpacity={0.7}
+            className="flex-row items-center py-3 px-2 border-b border-gray-700/50"
+            onPress={onPress}
+        >
+            <Ionicons name="location-outline" size={18} color="#9CA3AF" />
+            <View className="ml-3 flex-1">
+                <Text className="text-white text-sm font-medium" numberOfLines={1}>
+                    {suggestion.name}
+                </Text>
+                {!!suggestion.placeFormatted && (
+                    <Text className="text-gray-400 text-xs mt-0.5" numberOfLines={1}>
+                        {suggestion.placeFormatted}
+                    </Text>
+                )}
+            </View>
+        </TouchableOpacity>
+    );
+}
+
 interface MainBottomSheetProps {
     sheetRef: React.RefObject<TrueSheet | null>;
     searchQuery: string;
@@ -57,6 +84,16 @@ interface MainBottomSheetProps {
     searchSuggestions: MapboxSuggestion[];
     isSearching: boolean;
     onSelectSearchResult: (suggestion: MapboxSuggestion) => void;
+    locationLabel: string;
+    onPressLocationPill: () => void;
+    isLocationPickerActive: boolean;
+    onCloseLocationPicker: () => void;
+    locationQuery: string;
+    setLocationQuery: (query: string) => void;
+    locationSuggestions: MapboxSuggestion[];
+    isLocationSearching: boolean;
+    onSelectLocation: (suggestion: MapboxSuggestion) => void;
+    onUseCurrentLocation: () => void;
 }
 
 export default function MainBottomSheet({
@@ -70,6 +107,16 @@ export default function MainBottomSheet({
     searchSuggestions,
     isSearching,
     onSelectSearchResult,
+    locationLabel,
+    onPressLocationPill,
+    isLocationPickerActive,
+    onCloseLocationPicker,
+    locationQuery,
+    setLocationQuery,
+    locationSuggestions,
+    isLocationSearching,
+    onSelectLocation,
+    onUseCurrentLocation,
 }: MainBottomSheetProps) {
     const isSearchActive = searchQuery.trim().length > 0;
     return (
@@ -87,23 +134,89 @@ export default function MainBottomSheet({
             onDetentChange={handleDetentChange}
         >
             <View className="px-4 py-4">
-                <View className="flex-row items-center bg-gray-700/50 border border-gray-600/50 rounded-[20px] px-4 py-3">
-                    <Ionicons name="search" size={18} color="#9CA3AF" />
-                    <TextInput
-                        style={{ flex: 1, color: '#fff', fontSize: 16, marginLeft: 8 }}
-                        placeholder="Search..."
-                        placeholderTextColor="#9CA3AF"
-                        value={searchQuery}
-                        onChangeText={setSearchQuery}
-                        returnKeyType="search"
-                        onFocus={handleSearchFocus}
-                    />
-                    <TouchableOpacity activeOpacity={0.7}>
-                        <Ionicons name="mic" size={20} color="#9CA3AF" />
-                    </TouchableOpacity>
-                </View>
+                {isLocationPickerActive ? (
+                    <View className="flex-row items-center bg-gray-700/50 border border-gray-600/50 rounded-[20px] px-4 py-3">
+                        <TouchableOpacity activeOpacity={0.7} onPress={onCloseLocationPicker} hitSlop={8}>
+                            <Ionicons name="arrow-back" size={20} color="#9CA3AF" />
+                        </TouchableOpacity>
+                        <TextInput
+                            style={{ flex: 1, color: '#fff', fontSize: 16, marginLeft: 8 }}
+                            placeholder="Search city or town..."
+                            placeholderTextColor="#9CA3AF"
+                            value={locationQuery}
+                            onChangeText={setLocationQuery}
+                            returnKeyType="search"
+                            autoFocus
+                        />
+                    </View>
+                ) : (
+                    <View className="flex-row items-center bg-gray-700/50 border border-gray-600/50 rounded-[20px] pl-1.5 pr-4 py-1.5">
+                        <TouchableOpacity
+                            activeOpacity={0.7}
+                            className="flex-row items-center bg-gray-600/60 rounded-2xl pl-2.5 pr-2 py-2 mr-2"
+                            onPress={onPressLocationPill}
+                        >
+                            <Ionicons name="location" size={14} color="#60A5FA" />
+                            <Text
+                                className="text-white text-xs font-semibold ml-1"
+                                numberOfLines={1}
+                                style={{ maxWidth: 96 }}
+                            >
+                                {locationLabel}
+                            </Text>
+                            <Ionicons name="chevron-down" size={12} color="#9CA3AF" style={{ marginLeft: 2 }} />
+                        </TouchableOpacity>
+                        <View className="w-px h-5 bg-gray-600/50 mr-2" />
+                        <TextInput
+                            style={{ flex: 1, color: '#fff', fontSize: 16 }}
+                            placeholder="Search..."
+                            placeholderTextColor="#9CA3AF"
+                            value={searchQuery}
+                            onChangeText={setSearchQuery}
+                            returnKeyType="search"
+                            onFocus={handleSearchFocus}
+                        />
+                        <TouchableOpacity activeOpacity={0.7}>
+                            <Ionicons name="mic" size={20} color="#9CA3AF" />
+                        </TouchableOpacity>
+                    </View>
+                )}
 
-                {isSearchActive && currentDetentIndex > 0 && (
+                {isLocationPickerActive && currentDetentIndex > 0 && (
+                    <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(150)} className="mt-3">
+                        <TouchableOpacity
+                            activeOpacity={0.7}
+                            className="flex-row items-center py-3 px-2 border-b border-gray-700/50"
+                            onPress={onUseCurrentLocation}
+                        >
+                            <Ionicons name="navigate" size={18} color="#60A5FA" />
+                            <Text className="text-white text-sm font-medium ml-3">Use Current Location</Text>
+                        </TouchableOpacity>
+
+                        {locationQuery.trim().length > 0 && (
+                            <>
+                                {isLocationSearching && locationSuggestions.length === 0 && (
+                                    <View className="flex-row items-center px-2 py-4">
+                                        <ActivityIndicator size="small" color="#9CA3AF" />
+                                        <Text className="text-gray-400 text-sm ml-2">Searching...</Text>
+                                    </View>
+                                )}
+                                {!isLocationSearching && locationSuggestions.length === 0 && (
+                                    <Text className="text-gray-400 text-sm px-2 py-4">No results found</Text>
+                                )}
+                                {locationSuggestions.map((suggestion) => (
+                                    <SuggestionRow
+                                        key={suggestion.id}
+                                        suggestion={suggestion}
+                                        onPress={() => onSelectLocation(suggestion)}
+                                    />
+                                ))}
+                            </>
+                        )}
+                    </Animated.View>
+                )}
+
+                {!isLocationPickerActive && isSearchActive && currentDetentIndex > 0 && (
                     <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(150)} className="mt-3">
                         {isSearching && searchSuggestions.length === 0 && (
                             <View className="flex-row items-center px-2 py-4">
@@ -115,29 +228,16 @@ export default function MainBottomSheet({
                             <Text className="text-gray-400 text-sm px-2 py-4">No results found</Text>
                         )}
                         {searchSuggestions.map((suggestion) => (
-                            <TouchableOpacity
+                            <SuggestionRow
                                 key={suggestion.id}
-                                activeOpacity={0.7}
-                                className="flex-row items-center py-3 px-2 border-b border-gray-700/50"
+                                suggestion={suggestion}
                                 onPress={() => onSelectSearchResult(suggestion)}
-                            >
-                                <Ionicons name="location-outline" size={18} color="#9CA3AF" />
-                                <View className="ml-3 flex-1">
-                                    <Text className="text-white text-sm font-medium" numberOfLines={1}>
-                                        {suggestion.name}
-                                    </Text>
-                                    {!!suggestion.placeFormatted && (
-                                        <Text className="text-gray-400 text-xs mt-0.5" numberOfLines={1}>
-                                            {suggestion.placeFormatted}
-                                        </Text>
-                                    )}
-                                </View>
-                            </TouchableOpacity>
+                            />
                         ))}
                     </Animated.View>
                 )}
 
-                {!isSearchActive && currentDetentIndex > 0 && (
+                {!isLocationPickerActive && !isSearchActive && currentDetentIndex > 0 && (
                     <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(150)}>
                         <Animated.View className="px-2 mt-4" style={welcomeStyle} pointerEvents="none">
                             <View className="flex-row items-center mb-1">

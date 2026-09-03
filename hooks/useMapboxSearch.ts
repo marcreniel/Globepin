@@ -18,14 +18,22 @@ export interface MapboxSearchResult {
     longitude: number;
 }
 
+export interface UseMapboxSearchOptions {
+    // Restrict results to specific feature types, e.g. 'place,locality' for city/town-level search.
+    types?: string;
+    // Bias/boost results near this coordinate.
+    proximity?: { latitude: number; longitude: number } | null;
+}
+
 function randomSessionToken() {
     return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
-export default function useMapboxSearch(query: string) {
+export default function useMapboxSearch(query: string, options?: UseMapboxSearchOptions) {
     const [suggestions, setSuggestions] = useState<MapboxSuggestion[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const sessionToken = useRef(randomSessionToken()).current;
+    const { types, proximity } = options ?? {};
 
     useEffect(() => {
         const trimmed = query.trim();
@@ -44,6 +52,8 @@ export default function useMapboxSearch(query: string) {
                     session_token: sessionToken,
                     limit: '5',
                 });
+                if (types) params.set('types', types);
+                if (proximity) params.set('proximity', `${proximity.longitude},${proximity.latitude}`);
                 const response = await fetch(`${SUGGEST_URL}?${params}`);
                 const data = await response.json();
                 setSuggestions(
@@ -62,7 +72,7 @@ export default function useMapboxSearch(query: string) {
         }, DEBOUNCE_MS);
 
         return () => clearTimeout(timer);
-    }, [query, sessionToken]);
+    }, [query, sessionToken, types, proximity?.latitude, proximity?.longitude]);
 
     const retrieve = useCallback(async (id: string): Promise<MapboxSearchResult | null> => {
         if (!MAPBOX_TOKEN) return null;

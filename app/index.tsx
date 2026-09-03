@@ -1,5 +1,5 @@
 import * as Location from 'expo-location';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
     Animated,
     Keyboard,
@@ -51,6 +51,14 @@ interface Pin {
     photos?: string[];
 }
 
+interface LocationFilter {
+    name: string;
+    latitude: number;
+    longitude: number;
+}
+
+const DEFAULT_LOCATION_LABEL = 'Current Location';
+
 export default function HomeScreen() {
     const [searchQuery, setSearchQuery] = useState('');
     const [currentDetentIndex, setCurrentDetentIndex] = useState(1);
@@ -60,6 +68,9 @@ export default function HomeScreen() {
     const [region, setRegion] = useState<Region>(INITIAL_REGION);
     const [liveRegion, setLiveRegion] = useState<Region>(INITIAL_REGION);
     const [isAtUserLocation, setIsAtUserLocation] = useState(false);
+    const [locationFilter, setLocationFilter] = useState<LocationFilter | null>(null);
+    const [isLocationPickerActive, setIsLocationPickerActive] = useState(false);
+    const [locationQuery, setLocationQuery] = useState('');
     const dragPosition = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current; // tracks finger screen position
     const dragScale = useRef(new Animated.Value(0)).current;
     const wiggleRotation = useRef(new Animated.Value(0)).current;
@@ -67,12 +78,41 @@ export default function HomeScreen() {
     const pinColorAnim = useRef(new Animated.Value(0)).current; // 0=gray, 1=red
     const mapRef = useRef<MapView>(null);
     const clusters = usePinClusters(pins, liveRegion);
-    const { suggestions: searchSuggestions, isLoading: isSearching, retrieve } = useMapboxSearch(searchQuery);
+    const { suggestions: searchSuggestions, isLoading: isSearching, retrieve } = useMapboxSearch(searchQuery, {
+        proximity: locationFilter,
+    });
+    const { suggestions: locationSuggestions, isLoading: isLocationSearching, retrieve: retrieveLocation } = useMapboxSearch(locationQuery, {
+        types: 'place,locality',
+    });
     const { height: screenHeight } = useWindowDimensions();
 
     const sheetRef = useRef<TrueSheet>(null);
     const pinDetailSheetRef = useRef<PinDetailSheetHandle>(null);
     const { animatedPosition } = useReanimatedTrueSheet();
+
+    useEffect(() => {
+        (async () => {
+            // Only use the device's location if permission was already granted elsewhere
+            // (e.g. the "find me" control) — don't prompt just to fill in the pill's default.
+            const { status } = await Location.getForegroundPermissionsAsync();
+            if (status !== 'granted') return;
+
+            try {
+                const currentPosition = await Location.getCurrentPositionAsync({});
+                const [place] = await Location.reverseGeocodeAsync({
+                    latitude: currentPosition.coords.latitude,
+                    longitude: currentPosition.coords.longitude,
+                });
+                setLocationFilter({
+                    name: place?.city || place?.subregion || place?.region || DEFAULT_LOCATION_LABEL,
+                    latitude: currentPosition.coords.latitude,
+                    longitude: currentPosition.coords.longitude,
+                });
+            } catch {
+                // ignore — pill just keeps showing the default label
+            }
+        })();
+    }, []);
 
     const floatingStyle = useAnimatedStyle(() => {
         const y = animatedPosition ? animatedPosition.value : screenHeight;
@@ -151,6 +191,55 @@ export default function HomeScreen() {
         Keyboard.dismiss();
         sheetRef.current?.resize(1);
     }, [retrieve]);
+
+    const handleOpenLocationPicker = useCallback(() => {
+        setIsLocationPickerActive(true);
+        sheetRef.current?.resize(2);
+    }, []);
+
+    const handleCloseLocationPicker = useCallback(() => {
+        setIsLocationPickerActive(false);
+        setLocationQuery('');
+        Keyboard.dismiss();
+    }, []);
+
+    const handleSelectLocation = useCallback(async (suggestion: MapboxSuggestion) => {
+        const result = await retrieveLocation(suggestion.id);
+        if (!result) return;
+
+        setLocationFilter({
+            name: result.name,
+            latitude: result.latitude,
+            longitude: result.longitude,
+        });
+        setIsLocationPickerActive(false);
+        setLocationQuery('');
+        Keyboard.dismiss();
+        sheetRef.current?.resize(1);
+    }, [retrieveLocation]);
+
+    const handleUseCurrentLocation = useCallback(async () => {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+            alert('Permission to access location was denied');
+            return;
+        }
+
+        const currentPosition = await Location.getCurrentPositionAsync({});
+        const [place] = await Location.reverseGeocodeAsync({
+            latitude: currentPosition.coords.latitude,
+            longitude: currentPosition.coords.longitude,
+        });
+        setLocationFilter({
+            name: place?.city || place?.subregion || place?.region || DEFAULT_LOCATION_LABEL,
+            latitude: currentPosition.coords.latitude,
+            longitude: currentPosition.coords.longitude,
+        });
+        setIsLocationPickerActive(false);
+        setLocationQuery('');
+        Keyboard.dismiss();
+        sheetRef.current?.resize(1);
+    }, []);
 
     const handlePinSave = useCallback((details: PinDetails) => {
         setPins((prev) => [...prev, {
@@ -455,6 +544,16 @@ export default function HomeScreen() {
                 searchSuggestions={searchSuggestions}
                 isSearching={isSearching}
                 onSelectSearchResult={handleSelectSearchResult}
+                locationLabel={locationFilter?.name ?? DEFAULT_LOCATION_LABEL}
+                onPressLocationPill={handleOpenLocationPicker}
+                isLocationPickerActive={isLocationPickerActive}
+                onCloseLocationPicker={handleCloseLocationPicker}
+                locationQuery={locationQuery}
+                setLocationQuery={setLocationQuery}
+                locationSuggestions={locationSuggestions}
+                isLocationSearching={isLocationSearching}
+                onSelectLocation={handleSelectLocation}
+                onUseCurrentLocation={handleUseCurrentLocation}
             />
 
             {isDragging && (
