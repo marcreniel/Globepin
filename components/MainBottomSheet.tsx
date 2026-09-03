@@ -1,5 +1,5 @@
 import { HelloWave } from '@/components/hello-wave';
-import PinDetailContent from '@/components/PinDetailContent';
+import PinDetailContent, { PinVisibility } from '@/components/PinDetailContent';
 import SuggestionRow from '@/components/SuggestionRow';
 import { HStack } from '@/components/ui/hstack';
 import { MapboxSuggestion } from '@/hooks/useMapboxSearch';
@@ -77,6 +77,10 @@ interface MainBottomSheetProps {
     setPinNotes: (value: string) => void;
     pinDateVisited: string;
     setPinDateVisited: (value: string) => void;
+    pinRating: number;
+    setPinRating: (value: number) => void;
+    pinVisibility: PinVisibility;
+    setPinVisibility: (value: PinVisibility) => void;
     pinPhotos: string[];
     onPickPinPhotos: () => void;
     onRemovePinPhoto: (index: number) => void;
@@ -115,6 +119,10 @@ export default function MainBottomSheet({
     setPinNotes,
     pinDateVisited,
     setPinDateVisited,
+    pinRating,
+    setPinRating,
+    pinVisibility,
+    setPinVisibility,
     pinPhotos,
     onPickPinPhotos,
     onRemovePinPhoto,
@@ -148,6 +156,10 @@ export default function MainBottomSheet({
                         setNotes={setPinNotes}
                         dateVisited={pinDateVisited}
                         setDateVisited={setPinDateVisited}
+                        rating={pinRating}
+                        setRating={setPinRating}
+                        visibility={pinVisibility}
+                        setVisibility={setPinVisibility}
                         photos={pinPhotos}
                         onPickPhotos={onPickPinPhotos}
                         onRemovePhoto={onRemovePinPhoto}

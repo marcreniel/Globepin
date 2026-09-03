@@ -16,6 +16,7 @@ import DraggedPinOverlay from '@/components/DraggedPinOverlay';
 import FindMyPin from '@/components/FindMyPin';
 import MainBottomSheet from '@/components/MainBottomSheet';
 import MapFloatingControls from '@/components/MapFloatingControls';
+import { PinVisibility } from '@/components/PinDetailContent';
 import ProfileButton from '@/components/ProfileButton';
 import useMapboxSearch, { MapboxSuggestion } from '@/hooks/useMapboxSearch';
 import usePinClusters from '@/hooks/usePinClusters';
@@ -48,6 +49,8 @@ interface Pin {
     name?: string;
     notes?: string;
     dateVisited?: string;
+    rating?: number;
+    visibility?: PinVisibility;
     photos?: string[];
 }
 
@@ -76,6 +79,8 @@ export default function HomeScreen() {
     const [pinName, setPinName] = useState('');
     const [pinNotes, setPinNotes] = useState('');
     const [pinDateVisited, setPinDateVisited] = useState('');
+    const [pinRating, setPinRating] = useState(0);
+    const [pinVisibility, setPinVisibility] = useState<PinVisibility>('public');
     const [pinPhotos, setPinPhotos] = useState<string[]>([]);
     const dragPosition = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current; // tracks finger screen position
     const dragScale = useRef(new Animated.Value(0)).current;
@@ -286,6 +291,8 @@ export default function HomeScreen() {
         setPinName('');
         setPinNotes('');
         setPinPhotos([]);
+        setPinRating(0);
+        setPinVisibility('public');
         setPinDateVisited(new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }));
         setIsPinDetailActive(true);
         sheetRef.current?.resize(0);
@@ -341,12 +348,14 @@ export default function HomeScreen() {
             name: pinName.trim() || 'Untitled Pin',
             notes: pinNotes.trim(),
             dateVisited: pinDateVisited,
+            rating: pinRating,
+            visibility: pinVisibility,
             photos: pinPhotos,
         }]);
         setIsPinDetailActive(false);
         Keyboard.dismiss();
         sheetRef.current?.resize(preDropDetentIndex.current);
-    }, [pinCoordinate, pinName, pinNotes, pinDateVisited, pinPhotos]);
+    }, [pinCoordinate, pinName, pinNotes, pinDateVisited, pinRating, pinVisibility, pinPhotos]);
 
     const handlePickPinPhotos = useCallback(async () => {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -697,6 +706,10 @@ export default function HomeScreen() {
                 setPinNotes={setPinNotes}
                 pinDateVisited={pinDateVisited}
                 setPinDateVisited={setPinDateVisited}
+                pinRating={pinRating}
+                setPinRating={setPinRating}
+                pinVisibility={pinVisibility}
+                setPinVisibility={setPinVisibility}
                 pinPhotos={pinPhotos}
                 onPickPinPhotos={handlePickPinPhotos}
                 onRemovePinPhoto={handleRemovePinPhoto}

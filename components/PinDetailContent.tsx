@@ -1,9 +1,12 @@
+import StarRating from '@/components/StarRating';
 import SuggestionRow from '@/components/SuggestionRow';
 import { MapboxSuggestion } from '@/hooks/useMapboxSearch';
 import { Ionicons } from '@expo/vector-icons';
 import { GlassView } from 'expo-glass-effect';
 import React, { useRef, useState } from 'react';
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, Keyboard, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+
+export type PinVisibility = 'public' | 'private';
 
 interface PinDetailContentProps {
     name: string;
@@ -12,6 +15,10 @@ interface PinDetailContentProps {
     setNotes: (value: string) => void;
     dateVisited: string;
     setDateVisited: (value: string) => void;
+    rating: number;
+    setRating: (value: number) => void;
+    visibility: PinVisibility;
+    setVisibility: (value: PinVisibility) => void;
     photos: string[];
     onPickPhotos: () => void;
     onRemovePhoto: (index: number) => void;
@@ -22,6 +29,13 @@ interface PinDetailContentProps {
     onSelectNameSuggestion: (suggestion: MapboxSuggestion) => void;
 }
 
+function truncateTitle(name: string): string {
+    const trimmed = name.trim();
+    if (!trimmed) return 'Drop a Pin';
+    if (trimmed.length <= 20) return trimmed;
+    return `${trimmed.slice(0, 17)}...`;
+}
+
 export default function PinDetailContent({
     name,
     setName,
@@ -29,6 +43,10 @@ export default function PinDetailContent({
     setNotes,
     dateVisited,
     setDateVisited,
+    rating,
+    setRating,
+    visibility,
+    setVisibility,
     photos,
     onPickPhotos,
     onRemovePhoto,
@@ -39,6 +57,7 @@ export default function PinDetailContent({
     onSelectNameSuggestion,
 }: PinDetailContentProps) {
     const [isNameFocused, setIsNameFocused] = useState(false);
+    const [isVisibilityMenuOpen, setIsVisibilityMenuOpen] = useState(false);
     const blurTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const handleNameFocus = () => {
@@ -57,9 +76,20 @@ export default function PinDetailContent({
         onSelectNameSuggestion(suggestion);
     };
 
+    const handleDismissOutside = () => {
+        Keyboard.dismiss();
+        setIsVisibilityMenuOpen(false);
+    };
+
+    const handleSelectVisibility = (value: PinVisibility) => {
+        setVisibility(value);
+        setIsVisibilityMenuOpen(false);
+    };
+
     const showNameDropdown = isNameFocused && name.trim().length >= 2;
 
     return (
+        <TouchableWithoutFeedback onPress={handleDismissOutside}>
         <View>
             {/* Header row */}
             <View className="flex-row items-center justify-between mb-5">
@@ -71,7 +101,54 @@ export default function PinDetailContent({
                     <Ionicons name="close" size={22} color="#6B7280" />
                 </TouchableOpacity>
 
-                <Text className="text-white text-base font-semibold">Drop a Pin</Text>
+                <View className="relative">
+                    <TouchableOpacity
+                        activeOpacity={0.7}
+                        className="flex-row items-center bg-gray-600/60 rounded-2xl pl-2.5 pr-2 py-1.5"
+                        onPress={() => setIsVisibilityMenuOpen((v) => !v)}
+                    >
+                        <Ionicons
+                            name={visibility === 'public' ? 'globe-outline' : 'lock-closed-outline'}
+                            size={14}
+                            color="#9CA3AF"
+                        />
+                        <Text className="text-white text-sm font-semibold ml-1.5" numberOfLines={1}>
+                            {truncateTitle(name)}
+                        </Text>
+                        <Ionicons name="chevron-down" size={12} color="#9CA3AF" style={{ marginLeft: 4 }} />
+                    </TouchableOpacity>
+
+                    {isVisibilityMenuOpen && (
+                        <View
+                            className="absolute top-full mt-1.5 rounded-2xl border border-gray-700/75 overflow-hidden"
+                            style={{ minWidth: 150, left: '50%', transform: [{ translateX: -75 }] }}
+                        >
+                            <GlassView style={StyleSheet.absoluteFill} colorScheme="dark" />
+                            <TouchableOpacity
+                                activeOpacity={0.7}
+                                className="flex-row items-center px-3 py-2.5 border-b border-gray-700/50"
+                                onPress={() => handleSelectVisibility('public')}
+                            >
+                                <Ionicons name="globe-outline" size={16} color="#9CA3AF" />
+                                <Text className="text-white text-sm ml-2 flex-1">Public</Text>
+                                {visibility === 'public' && (
+                                    <Ionicons name="checkmark" size={14} color="#60A5FA" />
+                                )}
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                activeOpacity={0.7}
+                                className="flex-row items-center px-3 py-2.5"
+                                onPress={() => handleSelectVisibility('private')}
+                            >
+                                <Ionicons name="lock-closed-outline" size={16} color="#9CA3AF" />
+                                <Text className="text-white text-sm ml-2 flex-1">Private</Text>
+                                {visibility === 'private' && (
+                                    <Ionicons name="checkmark" size={14} color="#60A5FA" />
+                                )}
+                            </TouchableOpacity>
+                        </View>
+                    )}
+                </View>
 
                 <TouchableOpacity
                     onPress={onSave}
@@ -127,21 +204,32 @@ export default function PinDetailContent({
                 )}
             </View>
 
-            {/* Date visited */}
-            <View className="mb-3">
-                <Text className="text-gray-400 text-xs font-medium mb-1.5 uppercase tracking-wide">
-                    Date Visited
-                </Text>
-                <View className="bg-white/8 border border-white/10 rounded-2xl px-4 py-3.5 flex-row items-center gap-2">
-                    <Ionicons name="calendar-outline" size={16} color="#6B7280" />
-                    <TextInput
-                        value={dateVisited}
-                        onChangeText={setDateVisited}
-                        placeholder="e.g. Feb 28, 2026"
-                        placeholderTextColor="#4B5563"
-                        style={{ color: '#fff', fontSize: 15, flex: 1 }}
-                        returnKeyType="next"
-                    />
+            {/* Date visited + Rating */}
+            <View className="mb-3 flex-row gap-3">
+                <View className="flex-1">
+                    <Text className="text-gray-400 text-xs font-medium mb-1.5 uppercase tracking-wide">
+                        Date Visited
+                    </Text>
+                    <View className="bg-white/8 border border-white/10 rounded-2xl px-4 py-3.5 flex-row items-center gap-2">
+                        <Ionicons name="calendar-outline" size={16} color="#6B7280" />
+                        <TextInput
+                            value={dateVisited}
+                            onChangeText={setDateVisited}
+                            placeholder="e.g. Feb 28, 2026"
+                            placeholderTextColor="#4B5563"
+                            style={{ color: '#fff', fontSize: 15, flex: 1 }}
+                            returnKeyType="next"
+                        />
+                    </View>
+                </View>
+
+                <View className="flex-1">
+                    <Text className="text-gray-400 text-xs font-medium mb-1.5 uppercase tracking-wide">
+                        Rating
+                    </Text>
+                    <View className="bg-white/8 border border-white/10 rounded-2xl px-4 py-3.5 items-center justify-center">
+                        <StarRating value={rating} onChange={setRating} size={17} />
+                    </View>
                 </View>
             </View>
 
@@ -216,5 +304,6 @@ export default function PinDetailContent({
                 </ScrollView>
             </View>
         </View>
+        </TouchableWithoutFeedback>
     );
 }
