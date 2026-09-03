@@ -119,8 +119,10 @@ export default function PinDetailContent({
             onStartShouldSetResponder={() => true}
             onResponderRelease={handleDismissOutside}
         >
-            {/* Header row */}
-            <View className="flex-row items-center justify-between mb-5">
+            {/* Header row. Explicit zIndex (inline, not a class) so the visibility
+                dropdown paints above the sections declared after it — otherwise their
+                translucent bg-white/8 boxes render on top and wash it out. */}
+            <View className="flex-row items-center justify-between mb-5" style={{ zIndex: 30 }}>
                 <TouchableOpacity
                     onPress={onCancel}
                     activeOpacity={0.7}
@@ -190,7 +192,7 @@ export default function PinDetailContent({
             </View>
 
             {/* Place name */}
-            <View className="mb-3 relative z-20">
+            <View className="mb-3 relative" style={{ zIndex: 20 }}>
                 <Text className="text-gray-400 text-xs font-medium mb-1.5 uppercase tracking-wide">
                     Place Name
                 </Text>
