@@ -172,11 +172,11 @@ export default function MainBottomSheet({
 
                 {!isPinDetailActive && (<>
                 {isLocationPickerActive ? (
-                    // No nested GlassView and no fill: the sheet is already a glass surface,
-                    // and a second blur stacked on it can never match the first. Leaving the
-                    // bar unfilled means its interior *is* the sheet's material, so the two
-                    // match by construction — the border alone defines the field.
-                    <View className="flex-row items-center rounded-[20px] border border-gray-700/75 overflow-hidden px-4 py-3">
+                    // Same treatment as the PinDetailContent fields (Place Name, Date, Notes).
+                    // Deliberately not a nested GlassView: the sheet is already a glass
+                    // surface, and a second blur stacked on it composites into a visibly
+                    // different material. A flat tint stays consistent with the form fields.
+                    <View className="flex-row items-center rounded-2xl border border-white/10 bg-white/8 overflow-hidden px-4 py-3">
                         <TouchableOpacity activeOpacity={0.7} onPress={onCloseLocationPicker} hitSlop={8}>
                             <Ionicons name="arrow-back" size={20} color="#9CA3AF" />
                         </TouchableOpacity>
@@ -191,7 +191,7 @@ export default function MainBottomSheet({
                         />
                     </View>
                 ) : (
-                    <View className="flex-row items-center rounded-[20px] border border-gray-700/75 overflow-hidden pl-1.5 pr-4 py-1.5">
+                    <View className="flex-row items-center rounded-2xl border border-white/10 bg-white/8 overflow-hidden pl-1.5 pr-4 py-1.5">
                         <TouchableOpacity
                             activeOpacity={0.7}
                             className="flex-row items-center rounded-2xl overflow-hidden pl-2.5 pr-2 py-2 mr-2 bg-white/10"
