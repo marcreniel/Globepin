@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
     Animated,
     Keyboard,
+    type LayoutChangeEvent,
     PanResponder,
     Platform,
     useWindowDimensions,
@@ -87,7 +88,13 @@ export default function HomeScreen() {
     const dragOpacity = useRef(new Animated.Value(0)).current;
     const pinColorAnim = useRef(new Animated.Value(0)).current; // 0=gray, 1=red
     const mapRef = useRef<MapView>(null);
-    const clusters = usePinClusters(pins, liveRegion);
+    const [mapViewport, setMapViewport] = useState({ width: 0, height: 0 });
+    const handleMapLayout = useCallback((event: LayoutChangeEvent) => {
+        const { width, height } = event.nativeEvent.layout;
+        setMapViewport(previous => previous.width === width && previous.height === height
+            ? previous : { width, height });
+    }, []);
+    const clusters = usePinClusters(pins, liveRegion, mapViewport);
     const { suggestions: searchSuggestions, isLoading: isSearching, retrieve } = useMapboxSearch(searchQuery, {
         proximity: locationFilter,
     });
@@ -599,6 +606,7 @@ export default function HomeScreen() {
         <View className="flex-1 bg-black">
             <StyledMapView
                 ref={mapRef}
+                onLayout={handleMapLayout}
                 className="w-full h-full"
                 mapType={mapStyle}
                 region={region}

@@ -41,3 +41,30 @@ test('keeps pins exactly 50 pixels apart separate and merges just inside', () =>
     assert.equal(clusterPins([pin('a', 0, 0), pin('b', 0, 50)], region, { width: 100, height: 100 }).length, 2);
     assert.equal(clusterPins([pin('a', 0, 0), pin('b', 0, 49)], region, { width: 100, height: 100 }).length, 1);
 });
+
+
+test('recalculates horizontal distance for different viewport widths', () => {
+    const pins = [pin('a', 0, 0), pin('b', 0, 10)];
+    assert.equal(clusterPins(pins, region, { width: 400, height: 800 }).length, 1);
+    assert.equal(clusterPins(pins, region, { width: 800, height: 400 }).length, 2);
+});
+
+test('recalculates vertical distance for different viewport heights', () => {
+    const pins = [pin('a', 0, 0), pin('b', 10, 0)];
+    assert.equal(clusterPins(pins, region, { width: 800, height: 400 }).length, 1);
+    assert.equal(clusterPins(pins, region, { width: 400, height: 800 }).length, 2);
+});
+
+test('keeps individual pins when projection dimensions are invalid', () => {
+    const pins = [pin('a', 0, 0), pin('b', 0, 1)];
+    for (const value of [0, -1, NaN, Infinity]) {
+        for (const dimension of ['width', 'height']) {
+            const result = clusterPins(pins, region, { ...viewport, [dimension]: value });
+            assert.equal(result.length, 2);
+            assert.deepEqual(result.flatMap(c => c.pins), pins);
+        }
+        for (const dimension of ['latitudeDelta', 'longitudeDelta']) {
+            assert.equal(clusterPins(pins, { ...region, [dimension]: value }, viewport).length, 2);
+        }
+    }
+});

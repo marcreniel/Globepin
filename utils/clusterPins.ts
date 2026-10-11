@@ -65,6 +65,12 @@ export function clusterPins(pins: Pin[], region: ClusterRegion, viewport: Viewpo
         count: 1,
     }));
 
+    // Layout is initially zero-sized; leave pins separate until projection is valid.
+    if (![viewport.width, viewport.height, region.latitudeDelta, region.longitudeDelta]
+        .every(value => Number.isFinite(value) && value > 0)) {
+        return items;
+    }
+
     // Hierarchical: merge closest pair repeatedly
     let merged = true;
     while (merged) {

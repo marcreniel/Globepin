@@ -1,12 +1,10 @@
 import { useMemo } from 'react';
-import { Dimensions } from 'react-native';
 import type { Region } from 'react-native-maps';
-import { clusterPins, type Cluster, type Pin } from '@/utils/clusterPins';
+import { clusterPins, type Cluster, type Pin, type Viewport } from '@/utils/clusterPins';
 
 export type { Cluster } from '@/utils/clusterPins';
 
-const viewport = Dimensions.get('window');
-
-export default function usePinClusters(pins: Pin[], region: Region): Cluster[] {
-    return useMemo(() => clusterPins(pins, region, viewport), [pins, region]);
+export default function usePinClusters(pins: Pin[], region: Region, viewport: Viewport): Cluster[] {
+    const { width, height } = viewport;
+    return useMemo(() => clusterPins(pins, region, { width, height }), [pins, region, width, height]);
 }
