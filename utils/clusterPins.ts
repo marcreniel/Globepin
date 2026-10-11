@@ -41,8 +41,8 @@ function distScreen(a: { latitude: number; longitude: number }, b: { latitude: n
 function mergeTwoClusters(a: Cluster, b: Cluster): Cluster {
     const allPins = [...a.pins, ...b.pins];
     const totalCount = allPins.length;
-    const lat = (a.latitude * a.count + b.latitude * b.count) / totalCount;
-    const lng = (a.longitude * a.count + b.longitude * b.count) / totalCount;
+    const lat = (a.latitude + b.latitude) / 2;
+    const lng = (a.longitude + b.longitude) / 2;
     return {
         id: allPins.map((p) => p.id).sort().join('-'),
         latitude: lat,
